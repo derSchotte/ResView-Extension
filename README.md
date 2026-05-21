@@ -1,13 +1,13 @@
 # ResView – Responsive Design Tester
 
-> Test responsive designs without leaving VS Code. Preview any URL in accurate phone, tablet, and desktop viewports with portrait/landscape support.
+> Test responsive designs without leaving your editor. Preview any URL in accurate phone, tablet, and desktop viewports with portrait/landscape support — works in VS Code, Cursor, Windsurf, VSCodium, and all VS Code-compatible IDEs.
 
 ---
 
 ## Features
 
 ### Live Responsive Preview
-Load any local dev server or public URL directly inside VS Code and see how your layout behaves across different screen sizes — no external browser required.
+Load any local dev server or public URL directly inside your editor and see how your layout behaves across different screen sizes — no external browser required.
 
 ### Accurate Device Viewports
 Every device uses its real CSS viewport dimensions (logical pixels), not arbitrary guesses. Viewport sizes are derived from the device's physical resolution divided by its device pixel ratio.
@@ -126,7 +126,7 @@ Your custom devices appear under the **★ Custom** group in the dropdown and ar
 
 To delete a custom device, select it in the dropdown — a **🗑** delete button will appear next to the + button.
 
-> Custom devices are saved globally in VS Code and persist across all workspaces and sessions.
+> Custom devices are saved globally in your editor and persist across all workspaces and sessions.
 
 ---
 
@@ -151,7 +151,7 @@ To delete a custom device, select it in the dropdown — a **🗑** delete butto
 
 ## Settings
 
-Configure ResView via **File → Preferences → Settings** and search for `ResView`.
+Configure ResView via **File → Preferences → Settings** (or the equivalent in your editor) and search for `ResView`.
 
 | Setting | Type | Default | Description |
 |---|---|---|---|
@@ -178,9 +178,27 @@ This means a site that looks correct at `360px` width in ResView will behave ide
 
 ---
 
+## Compatibility
+
+ResView is built on the VS Code Extension API and runs in any editor that supports it:
+
+| Editor | Status |
+|---|---|
+| [VS Code](https://code.visualstudio.com) | ✅ Fully supported |
+| [Cursor](https://www.cursor.com) | ✅ Fully supported |
+| [Windsurf](https://windsurf.com) | ✅ Fully supported |
+| [VSCodium](https://vscodium.com) | ✅ Fully supported |
+| [GitHub Codespaces](https://github.com/features/codespaces) | ⚠️ Not tested yet |
+| [Gitpod](https://www.gitpod.io) | ⚠️ Not tested yet |
+| [Eclipse Theia](https://theia-ide.org) | ⚠️ Not tested yet |
+
+Any other editor that supports VS Code extensions (`.vsix` install) should work equally well.
+
+---
+
 ## Requirements
 
-- VS Code **1.85.0** or later
+- VS Code **1.85.0** or later (or a compatible editor)
 - Any local or remote URL accessible from your machine (no special server configuration needed)
 
 ---
