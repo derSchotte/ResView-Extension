@@ -3,8 +3,8 @@
   "displayName": "ResView – Responsive Design Tester",
   "description": "Test responsive designs (Mobile First) without leaving VS Code. Preview sites in phones, tablets and desktop views with portrait/landscape toggle.",
   "version": "1.1.0",
-  "publisher": "FrankMcDonald",
-  "author": "Frank McDonald",
+  "publisher": "derSchotte",
+  "author": "derSchotte",
   "engines": {
     "vscode": "^1.85.0"
   },
