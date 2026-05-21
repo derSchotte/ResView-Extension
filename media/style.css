@@ -1,0 +1,547 @@
+/* ── Reset & Base ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #1e1e2e;
+  --bg2:          #252535;
+  --bg3:          #2d2d42;
+  --surface:      #313145;
+  --border:       #44445a;
+  --accent:       #7c6af6;
+  --accent-hover: #9580ff;
+  --text:         #cdd6f4;
+  --text-muted:   #7f849c;
+  --chip-bg:      #3a3a55;
+  --chip-hover:   #4a4a6a;
+  --success:      #a6e3a1;
+  --warn:         #f9e2af;
+  --radius:       6px;
+  --radius-lg:    12px;
+  --phone-radius: 36px;
+  --tablet-radius: 24px;
+  --shadow:       0 4px 24px rgba(0,0,0,0.45);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ── App Layout ────────────────────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────────── */
+#toolbar {
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar-row--devices {
+  gap: 10px;
+}
+
+/* ── Labels ────────────────────────────────────────────────────────────────── */
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ── URL group ─────────────────────────────────────────────────────────────── */
+.url-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.url-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.url-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 5px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.url-input:focus {
+  border-color: var(--accent);
+}
+.url-input::placeholder { color: var(--text-muted); }
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+.btn {
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-icon {
+  background: var(--surface);
+  color: var(--text);
+  padding: 5px 9px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+}
+.btn-icon:hover { background: var(--chip-hover); }
+.btn-icon:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Spinning rescan button ────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinning .icon { display: inline-block; animation: spin 0.7s linear infinite; }
+
+/* ── Server chips ──────────────────────────────────────────────────────────── */
+.server-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.server-chip {
+  background: var(--chip-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 11.5px;
+  padding: 3px 10px;
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.server-chip:hover { background: var(--chip-hover); border-color: var(--accent); }
+
+.server-badge {
+  color: var(--success);
+  font-weight: 700;
+  font-size: 10px;
+}
+
+.no-servers {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+/* ── Category Tabs ─────────────────────────────────────────────────────────── */
+.category-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 10px;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Device Select ─────────────────────────────────────────────────────────── */
+.device-select-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.device-select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 12px;
+  max-width: 230px;
+  outline: none;
+  padding: 4px 8px;
+}
+.device-select:focus { border-color: var(--accent); }
+
+/* ── Rotate button ─────────────────────────────────────────────────────────── */
+.rotate-btn { font-size: 16px; padding: 4px 8px; }
+
+/* ── Device Info ───────────────────────────────────────────────────────────── */
+.device-info {
+  color: var(--text-muted);
+  font-size: 12px;
+  flex: 1;
+}
+.device-info strong { color: var(--text); }
+
+/* ── Zoom ──────────────────────────────────────────────────────────────────── */
+.zoom-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.zoom-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--bg3);
+  border-radius: 4px;
+  height: 4px;
+  outline: none;
+  width: 90px;
+}
+.zoom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  height: 14px;
+  width: 14px;
+}
+
+.zoom-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  min-width: 38px;
+  text-align: right;
+}
+
+/* ── Stage ─────────────────────────────────────────────────────────────────── */
+#stage {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 40px;
+}
+
+/* ── Device Shell (scaled wrapper) ─────────────────────────────────────────── */
+#deviceShell {
+  position: relative;
+  transform-origin: top center;
+  will-change: transform;
+}
+
+/* ── Device Bezel ──────────────────────────────────────────────────────────── */
+#deviceBezel {
+  background: #1a1a28;
+  border: 2px solid #3a3a52;
+  border-radius: var(--phone-radius);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 1px rgba(255,255,255,0.06),
+    0 0 0 4px rgba(0,0,0,0.3);
+  position: relative;
+  transition: border-radius 0.25s;
+}
+
+#deviceBezel[data-cat="tablet"] {
+  border-radius: var(--tablet-radius);
+}
+
+#deviceBezel[data-cat="desktop"] {
+  border-radius: 8px;
+  border-color: #44445a;
+}
+
+/* ── Notch ─────────────────────────────────────────────────────────────────── */
+.notch {
+  background: #0f0f1a;
+  border-radius: 0 0 12px 12px;
+  height: 20px;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 100px;
+  z-index: 2;
+}
+
+/* Landscape: notch moves from top to left side */
+#deviceBezel[data-landscape="true"] .notch {
+  border-radius: 0 12px 12px 0;
+  height: 100px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+}
+
+/* ── Frame wrapper ─────────────────────────────────────────────────────────── */
+#frameWrapper {
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── iframe ────────────────────────────────────────────────────────────────── */
+#preview {
+  border: none;
+  display: block;
+}
+
+/* ── Dimension badge ───────────────────────────────────────────────────────── */
+.dimension-badge {
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  bottom: -28px;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 500;
+  left: 50%;
+  letter-spacing: 0.04em;
+  padding: 3px 12px;
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* ── Scrollbar styling ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Add device button ──────────────────────────────────────────────────────── */
+.btn-add {
+  background: rgba(124, 106, 246, 0.12);
+  border: 1px solid rgba(124, 106, 246, 0.35);
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 9px;
+}
+.btn-add:hover {
+  background: rgba(124, 106, 246, 0.28);
+  border-color: var(--accent);
+}
+
+/* ── Danger / Delete button ─────────────────────────────────────────────────── */
+.btn-danger {
+  background: rgba(243, 139, 168, 0.1);
+  border: 1px solid rgba(243, 139, 168, 0.35);
+  color: #f38ba8;
+  font-size: 13px;
+  padding: 4px 9px;
+}
+.btn-danger:hover {
+  background: rgba(243, 139, 168, 0.22);
+  border-color: #f38ba8;
+}
+
+/* ── Custom tag in device info ──────────────────────────────────────────────── */
+.custom-tag {
+  background: rgba(124, 106, 246, 0.2);
+  border: 1px solid rgba(124, 106, 246, 0.4);
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-left: 5px;
+  padding: 1px 5px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* ── Modal overlay ──────────────────────────────────────────────────────────── */
+.modal-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 200;
+}
+.modal-overlay[hidden] { display: none; }
+.btn[hidden] { display: none; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  max-width: calc(100vw - 32px);
+  width: 340px;
+}
+
+.modal-header {
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  padding: 13px 16px 11px;
+}
+
+.modal-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 2px 7px;
+}
+.modal-close:hover { color: var(--text); background: var(--bg3); }
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 14px 16px;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 11px 16px 13px;
+}
+
+/* ── Form fields ────────────────────────────────────────────────────────────── */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.field-optional {
+  font-size: 10px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.field-unit {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.field-row-two {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.text-input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  padding: 5px 10px;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+.text-input:focus { border-color: var(--accent); }
+.text-input::placeholder { color: var(--text-muted); }
+.text-input[type="number"]::-webkit-inner-spin-button,
+.text-input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+/* ── Radio group ────────────────────────────────────────────────────────────── */
+.radio-group {
+  display: flex;
+  gap: 14px;
+}
+
+.radio-label {
+  align-items: center;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  gap: 5px;
+}
+.radio-label input { accent-color: var(--accent); }
+
+/* ── Field error ────────────────────────────────────────────────────────────── */
+.field-error {
+  color: #f38ba8;
+  font-size: 12px;
+  margin: 0;
+}

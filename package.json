@@ -1,0 +1,84 @@
+{
+  "name": "resview",
+  "displayName": "ResView – Responsive Design Tester",
+  "description": "Test responsive designs (Mobile First) without leaving VS Code. Preview sites in phones, tablets and desktop views with portrait/landscape toggle.",
+  "version": "1.0.9",
+  "publisher": "resview",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "responsive",
+    "mobile",
+    "preview",
+    "design",
+    "testing"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "icon": "media/icon.png",
+  "contributes": {
+    "commands": [
+      {
+        "command": "resview.open",
+        "title": "ResView: Open Responsive Preview",
+        "icon": "$(device-mobile)"
+      },
+      {
+        "command": "resview.openWithUrl",
+        "title": "ResView: Open with Custom URL"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "resview.open",
+          "group": "navigation",
+          "when": "resourceExtname =~ /\\.(html|htm|jsx|tsx|vue|svelte)$/"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "resview.open",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
+      }
+    ],
+    "configuration": {
+      "title": "ResView",
+      "properties": {
+        "resview.defaultUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Default URL to preview (leave empty for auto-detect)"
+        },
+        "resview.autoDetect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically detect running dev servers"
+        },
+        "resview.defaultDevice": {
+          "type": "string",
+          "default": "iPhone 14",
+          "description": "Default device to show on open"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.1",
+    "typescript": "^5.3.0"
+  }
+}

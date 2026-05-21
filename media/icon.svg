@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect width="128" height="128" rx="24" fill="#1e1e2e"/>
+  <!-- Desktop monitor -->
+  <rect x="14" y="28" width="72" height="48" rx="4" fill="none" stroke="#7c6af6" stroke-width="4"/>
+  <line x1="50" y1="76" x2="50" y2="88" stroke="#7c6af6" stroke-width="4"/>
+  <line x1="36" y1="88" x2="64" y2="88" stroke="#7c6af6" stroke-width="4"/>
+  <!-- Phone -->
+  <rect x="91" y="42" width="24" height="42" rx="5" fill="none" stroke="#a6e3a1" stroke-width="3.5"/>
+  <circle cx="103" cy="78" r="2.5" fill="#a6e3a1"/>
+  <!-- Screen glint -->
+  <rect x="20" y="34" width="60" height="36" rx="2" fill="#252535"/>
+  <rect x="91" y="47" width="24" height="28" rx="1" fill="#252535"/>
+</svg>
