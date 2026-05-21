@@ -25,6 +25,10 @@ export class ResViewPanel {
   private _detectedServers: DetectedServer[] = [];
 
   static async revive(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
+    panel.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "media")],
+    };
     ResViewPanel.currentPanel = new ResViewPanel(panel, context.extensionUri, context);
   }
 
