@@ -3,6 +3,12 @@ import { ResViewPanel } from "./ResViewPanel";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
+    vscode.window.registerWebviewPanelSerializer(ResViewPanel.viewType, {
+      async deserializeWebviewPanel(panel: vscode.WebviewPanel) {
+        await ResViewPanel.revive(panel, context);
+      },
+    }),
+
     vscode.commands.registerCommand("resview.open", () => {
       ResViewPanel.createOrShow(context);
     }),

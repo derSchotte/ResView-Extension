@@ -14,7 +14,7 @@ interface UiState {
 
 export class ResViewPanel {
   public static currentPanel: ResViewPanel | undefined;
-  private static readonly viewType = "resview";
+  public static readonly viewType = "resview";
 
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
@@ -23,6 +23,10 @@ export class ResViewPanel {
 
   private _currentUrl = "";
   private _detectedServers: DetectedServer[] = [];
+
+  static async revive(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
+    ResViewPanel.currentPanel = new ResViewPanel(panel, context.extensionUri, context);
+  }
 
   static async createOrShow(context: vscode.ExtensionContext, url?: string) {
     const extensionUri = context.extensionUri;
