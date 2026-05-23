@@ -18,6 +18,7 @@ const INSPECTOR_SCRIPT = `(function(){
   function getSources(el){
     var found=[];
     var sheets=document.styleSheets;
+    var pageName=window.location.href.split('/').pop().split('?')[0]||'index.html';
     for(var i=0;i<sheets.length;i++){
       try{
         var rules=sheets[i].cssRules;
@@ -28,8 +29,7 @@ const INSPECTOR_SCRIPT = `(function(){
           try{
             if(el.matches(rule.selectorText)){
               var href=sheets[i].href;
-              if(!href)continue;
-              var name=href.split('/').pop().split('?')[0];
+              var name=href?href.split('/').pop().split('?')[0]:pageName;
               if(found.indexOf(name)<0)found.push(name);
             }
           }catch(e){}
