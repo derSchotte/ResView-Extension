@@ -28,8 +28,19 @@ const INSPECTOR_SCRIPT = `(function(){
           if(!rule.selectorText)continue;
           try{
             if(el.matches(rule.selectorText)){
+              var name='';
               var href=sheets[i].href;
-              var name=href?href.split('/').pop().split('?')[0]:pageName;
+              if(href){
+                name=href.split('/').pop().split('?')[0];
+              } else {
+                var node=sheets[i].ownerNode;
+                var viteId=node&&node.getAttribute&&node.getAttribute('data-vite-dev-id');
+                if(viteId){
+                  name=viteId.split('/').pop().split('?')[0];
+                } else {
+                  name=pageName;
+                }
+              }
               if(found.indexOf(name)<0)found.push(name);
             }
           }catch(e){}
