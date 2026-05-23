@@ -1,6 +1,8 @@
 out/
 node_modules/
 *.vsix
+Marketplace/
+OpenVSX/
 .vscode-test/
 .claude/
 *~
