@@ -19,32 +19,31 @@ const INSPECTOR_SCRIPT = `(function(){
     var found=[];
     var sheets=document.styleSheets;
     var pageName=window.location.href.split('/').pop().split('?')[0]||'index.html';
+    function sheetName(sheet){
+      var href=sheet.href;
+      if(href)return href.split('/').pop().split('?')[0];
+      var node=sheet.ownerNode;
+      var viteId=node&&node.getAttribute&&node.getAttribute('data-vite-dev-id');
+      if(viteId)return viteId.split('/').pop().split('?')[0];
+      return pageName;
+    }
+    function scanRules(rules,name){
+      for(var j=0;j<rules.length;j++){
+        var rule=rules[j];
+        try{
+          if(rule.selectorText){
+            if(el.matches(rule.selectorText)&&found.indexOf(name)<0)found.push(name);
+          } else if(rule.cssRules){
+            scanRules(rule.cssRules,name);
+          }
+        }catch(e){}
+      }
+    }
     for(var i=0;i<sheets.length;i++){
       try{
         var rules=sheets[i].cssRules;
         if(!rules)continue;
-        for(var j=0;j<rules.length;j++){
-          var rule=rules[j];
-          if(!rule.selectorText)continue;
-          try{
-            if(el.matches(rule.selectorText)){
-              var name='';
-              var href=sheets[i].href;
-              if(href){
-                name=href.split('/').pop().split('?')[0];
-              } else {
-                var node=sheets[i].ownerNode;
-                var viteId=node&&node.getAttribute&&node.getAttribute('data-vite-dev-id');
-                if(viteId){
-                  name=viteId.split('/').pop().split('?')[0];
-                } else {
-                  name=pageName;
-                }
-              }
-              if(found.indexOf(name)<0)found.push(name);
-            }
-          }catch(e){}
-        }
+        scanRules(rules,sheetName(sheets[i]));
       }catch(e){}
     }
     return found;
