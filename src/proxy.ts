@@ -103,12 +103,37 @@ export class InspectorProxy {
   async start(): Promise<number> {
     return new Promise((resolve, reject) => {
       this._server = http.createServer((req, res) => this._handle(req, res));
+      this._server.on("upgrade", (req, socket, head) =>
+        this._handleUpgrade(req, socket as net.Socket, head)
+      );
       this._server.listen(0, "127.0.0.1", () => {
         this._port = (this._server!.address() as net.AddressInfo).port;
         resolve(this._port);
       });
       this._server.on("error", reject);
     });
+  }
+
+  private _handleUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
+    if (!this._targetBase) { socket.destroy(); return; }
+    const parsed = url.parse(this._targetBase);
+    const targetPort = parsed.port ? parseInt(parsed.port) : 80;
+    const targetHost = parsed.hostname!;
+
+    const upstream = net.connect(targetPort, targetHost, () => {
+      const lines: string[] = [`GET ${req.url} HTTP/1.1`];
+      for (const [k, v] of Object.entries(req.headers)) {
+        lines.push(`${k}: ${k === "host" ? parsed.host : (Array.isArray(v) ? v.join(", ") : v)}`);
+      }
+      lines.push("", "");
+      upstream.write(lines.join("\r\n"));
+      if (head?.length) upstream.write(head);
+      upstream.pipe(socket);
+      socket.pipe(upstream);
+    });
+
+    upstream.on("error", () => socket.destroy());
+    socket.on("error", () => upstream.destroy());
   }
 
   get port(): number {
