@@ -28,7 +28,8 @@ const INSPECTOR_SCRIPT = `(function(){
           try{
             if(el.matches(rule.selectorText)){
               var href=sheets[i].href;
-              var name=href?href.split('/').pop().split('?')[0]:'<style>';
+              if(!href)continue;
+              var name=href.split('/').pop().split('?')[0];
               if(found.indexOf(name)<0)found.push(name);
             }
           }catch(e){}
