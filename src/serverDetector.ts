@@ -15,6 +15,7 @@ const CANDIDATE_PORTS: Array<{ port: number; framework: string }> = [
   { port: 4000, framework: "Gatsby / Express" },
   { port: 4200, framework: "Angular" },
   { port: 5000, framework: "Flask / Express" },
+  { port: 5500, framework: "Live Server (VS Code)" },
   { port: 5173, framework: "Vite (React / Vue / Svelte)" },
   { port: 5174, framework: "Vite (alt port)" },
   { port: 8000, framework: "Django / generic" },

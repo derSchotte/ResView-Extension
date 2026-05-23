@@ -16,13 +16,35 @@ Every device uses its real CSS viewport dimensions (logical pixels), not arbitra
 Instantly flip between portrait and landscape orientation for any phone or tablet with a single click or the rotate button.
 
 ### Auto Dev-Server Detection
-ResView scans for running local development servers on startup and shows them as clickable chips — just click to load instantly. Re-scan at any time with the refresh button.
+ResView scans for running local development servers on startup and shows them as clickable chips — just click to load instantly. Supports Next.js, React, Vite, Angular, Vue, Svelte, Flask, Django, and more. Re-scan at any time with the refresh button.
+
+### Live Server Quick-Access
+A dedicated **⚡ Live Server :5500** button is always visible in the toolbar, giving you instant one-click access to the VS Code Live Server extension without having to type the address manually.
 
 ### Zoom Control
-Scale the preview from 25 % to 100 % to fit your screen while keeping the viewport dimensions accurate. The dimension badge always shows the true CSS pixel size.
+Scale the preview from **25 % to 150 %** to fit the device preview into your available space. The dimension badge always shows the true CSS pixel size regardless of zoom level.
 
 ### Custom Devices
 Add your own devices with fully configurable viewport size, category, PPI, and year. Custom devices persist across sessions and are grouped separately in the device list.
+
+### Grid Overlay
+Toggle a pixel grid over the preview with the **Grid** button. Choose from six cell sizes — **4 · 8 · 16 · 24 · 32 · 64 px** — via the adjacent dropdown. Useful for checking alignment, spacing, and layout consistency.
+
+### Pixel Ruler
+Toggle horizontal and vertical rulers with the **Ruler** button. Rulers appear outside the visible content area (in the device bezel) and show real CSS pixel coordinates starting at 0. They update automatically on device switch, rotation, and zoom change.
+
+### Inspector Mode *(localhost only)*
+Activate the **Inspect** button to enter element inspection mode. ResView starts a local HTTP proxy that injects an inspector script into every page response. Hovering over elements shows:
+
+- A violet highlight around the hovered element
+- The element's CSS selector
+- A **box model diagram** (margin / border / padding / content) in Firefox DevTools style
+- Key computed styles: color, background, font-size, font-family, display, position, border-radius, and more — with inline color swatches
+
+> **Note:** Inspector Mode requires a locally running HTTP server (e.g. `localhost:3000`, `localhost:5500`). External HTTPS sites are not supported.
+
+### Open in Browser
+The **↗** button next to the address bar opens the current URL directly in your default system browser.
 
 ---
 
@@ -93,7 +115,7 @@ Three ways to open ResView:
 
 ### 2. Enter a URL
 
-Type any URL into the address bar and press **Go** or `Enter`. ResView also detects running dev servers automatically and shows them as clickable chips below the URL bar.
+Type any URL into the address bar and press **Go** or `Enter`. ResView also detects running dev servers automatically and shows them as clickable chips below the URL bar. For VS Code Live Server, click the **⚡ Live Server :5500** button directly.
 
 ### 3. Pick a Device
 
@@ -105,7 +127,38 @@ Click the **↕ / ↔** button to switch between portrait and landscape mode. No
 
 ### 5. Adjust Zoom
 
-Drag the zoom slider (25 %–100 %) to fit the device preview into your available space. The dimension badge at the bottom always shows the actual CSS viewport size.
+Drag the zoom slider (**25 %–150 %**) to fit the device preview into your available screen space. The dimension badge at the bottom always shows the actual CSS viewport size.
+
+---
+
+## Developer Tools
+
+### Grid Overlay
+
+Click **Grid** in the toolbar to overlay a pixel grid on the preview. Use the adjacent dropdown to choose the cell size:
+
+| Size | Use case |
+|---|---|
+| 4 px | Fine-grained pixel alignment |
+| 8 px | Default — standard 8pt spacing system |
+| 16 px | Base grid for most design systems |
+| 24 px | Material Design baseline |
+| 32 px | Coarse layout grid |
+| 64 px | Section / column planning |
+
+### Ruler
+
+Click **Ruler** to show horizontal and vertical pixel rulers alongside the device frame. Rulers display real CSS pixel coordinates (0 → device width/height) and never overlap the visible content.
+
+### Inspector Mode
+
+Click **Inspect** to activate element inspection (requires a running localhost server). Hover over any element in the preview to see:
+
+- The element's CSS selector
+- Full box model: margin, border, padding, and content dimensions
+- Computed styles: color (with swatch), background, font-size, font-family, font-weight, line-height, display, position, flex-direction, gap, border-radius, opacity, z-index, overflow
+
+Click **Inspect** again to exit inspection mode and return to the normal preview.
 
 ---
 
@@ -200,6 +253,7 @@ Any other editor that supports VS Code extensions (`.vsix` install) should work 
 
 - VS Code **1.85.0** or later (or a compatible editor)
 - Any local or remote URL accessible from your machine (no special server configuration needed)
+- Inspector Mode requires a locally running HTTP server
 
 ---
 

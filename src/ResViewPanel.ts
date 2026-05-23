@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { DEVICES, Device } from "./devices";
 import { detectRunningServers, DetectedServer } from "./serverDetector";
+import { InspectorProxy } from "./proxy";
 
 const CUSTOM_DEVICES_KEY = "resview.customDevices";
 const UI_STATE_KEY = "resview.uiState";
@@ -23,6 +24,7 @@ export class ResViewPanel {
 
   private _currentUrl = "";
   private _detectedServers: DetectedServer[] = [];
+  private _proxy: InspectorProxy = new InspectorProxy();
 
   static async revive(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     panel.webview.options = {
@@ -87,6 +89,8 @@ export class ResViewPanel {
   }
 
   private async _init() {
+    await this._proxy.start();
+
     const config = vscode.workspace.getConfiguration("resview");
     const autoDetect = config.get<boolean>("autoDetect", true);
     const defaultUrl = config.get<string>("defaultUrl", "");
@@ -139,6 +143,7 @@ export class ResViewPanel {
           customDevices: this._getCustomDevices(),
           uiState: this._getUiState(),
           servers: this._detectedServers,
+          proxyPort: this._proxy.port,
         });
         break;
 
@@ -178,6 +183,17 @@ export class ResViewPanel {
       case "saveUiState":
         this._saveUiState(msg.state as UiState);
         break;
+
+      case "inspectorToggle": {
+        const enabled = msg.enabled as boolean;
+        const targetUrl = msg.url as string | undefined;
+        if (enabled && targetUrl) {
+          this._proxy.setTarget(targetUrl);
+          const proxyUrl = this._proxy.proxyUrlFor(targetUrl);
+          this._panel.webview.postMessage({ type: "inspectorReady", proxyUrl });
+        }
+        break;
+      }
 
       case "openExternal":
         if (typeof msg.url === "string") {
@@ -230,8 +246,14 @@ export class ResViewPanel {
             <button id="btnRescan" class="btn btn-icon" title="Re-scan for dev servers">
               <span class="icon">⟳</span>
             </button>
+            <button id="btnOpenBrowser" class="btn btn-icon" title="Open in system browser">↗</button>
           </div>
-          <div id="serverChips" class="server-chips"></div>
+          <div class="server-chips-row">
+            <button id="btnLiveServer" class="server-chip server-chip--pinned" title="Load http://localhost:5500">
+              <span class="server-badge server-badge--pin">⚡</span> Live Server :5500
+            </button>
+            <div id="serverChips" class="server-chips"></div>
+          </div>
         </div>
       </div>
 
@@ -255,17 +277,66 @@ export class ResViewPanel {
 
         <div class="zoom-group">
           <label class="label">Zoom</label>
-          <input id="zoomRange" class="zoom-range" type="range" min="25" max="100" value="75" step="5" />
+          <input id="zoomRange" class="zoom-range" type="range" min="25" max="150" value="75" step="5" />
           <span id="zoomLabel" class="zoom-label">75 %</span>
+        </div>
+        <div class="overlay-controls">
+          <button id="btnGrid" class="btn btn-icon btn-overlay-toggle" title="Toggle Grid">Grid</button>
+          <select id="gridSizeSelect" class="grid-size-select" title="Grid cell size">
+            <option value="4">4 px</option>
+            <option value="8" selected>8 px</option>
+            <option value="16">16 px</option>
+            <option value="24">24 px</option>
+            <option value="32">32 px</option>
+            <option value="64">64 px</option>
+          </select>
+          <button id="btnRuler" class="btn btn-icon btn-overlay-toggle" title="Toggle Ruler">Ruler</button>
+          <button id="btnInspect" class="btn btn-icon btn-overlay-toggle" title="Inspector Mode (localhost only)">Inspect</button>
         </div>
       </div>
     </header>
 
+    <!-- Inspector Panel -->
+    <div id="inspectorPanel" class="inspector-panel" hidden>
+      <div class="insp-selector" id="inspSelector">Hover over an element to inspect it</div>
+      <div class="insp-body">
+        <div class="insp-boxmodel">
+          <div class="bm-margin bm-layer">
+            <span class="bm-lbl">margin</span>
+            <span class="bm-t" id="bmMT">—</span>
+            <span class="bm-r" id="bmMR">—</span>
+            <span class="bm-b" id="bmMB">—</span>
+            <span class="bm-l" id="bmML">—</span>
+            <div class="bm-border bm-layer">
+              <span class="bm-lbl">border</span>
+              <span class="bm-t" id="bmBT">—</span>
+              <span class="bm-r" id="bmBR">—</span>
+              <span class="bm-b" id="bmBB">—</span>
+              <span class="bm-l" id="bmBL">—</span>
+              <div class="bm-padding bm-layer">
+                <span class="bm-lbl">padding</span>
+                <span class="bm-t" id="bmPT">—</span>
+                <span class="bm-r" id="bmPR">—</span>
+                <span class="bm-b" id="bmPB">—</span>
+                <span class="bm-l" id="bmPL">—</span>
+                <div class="bm-content"><span id="bmW">—</span>&nbsp;×&nbsp;<span id="bmH">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="insp-styles" id="inspStyles"></div>
+      </div>
+    </div>
+
     <!-- Preview Stage -->
     <main id="stage">
       <div id="deviceShell">
+        <div id="rulerCorner" class="ruler-corner" hidden></div>
+        <canvas id="hRuler" class="ruler ruler-h" hidden></canvas>
+        <canvas id="vRuler" class="ruler ruler-v" hidden></canvas>
         <div id="deviceBezel">
           <div id="frameWrapper">
+            <div id="gridOverlay" class="grid-overlay" hidden></div>
             <iframe id="preview" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
           </div>
         </div>
@@ -330,6 +401,7 @@ export class ResViewPanel {
 
   dispose() {
     ResViewPanel.currentPanel = undefined;
+    this._proxy.stop();
     this._panel.dispose();
     while (this._disposables.length) {
       const d = this._disposables.pop();

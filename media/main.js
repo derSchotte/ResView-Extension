@@ -12,6 +12,12 @@
   let isLandscape = false;
   let zoomLevel = 75;
   let currentUrl = "";
+  let showGrid = false;
+  let showRuler = false;
+  let showInspector = false;
+  let proxyPort = 0;
+  let currentBezelH = 0;
+  let currentBezelV = 0;
 
   // ── DOM refs ───────────────────────────────────────────────────────────────
   const urlInput = /** @type {HTMLInputElement} */ (document.getElementById("urlInput"));
@@ -32,6 +38,32 @@
   const zoomRange = /** @type {HTMLInputElement} */ (document.getElementById("zoomRange"));
   const zoomLabel = document.getElementById("zoomLabel");
   const tabBtns = document.querySelectorAll(".tab-btn");
+  const btnGrid = document.getElementById("btnGrid");
+  const gridSizeSelect = /** @type {HTMLSelectElement} */ (document.getElementById("gridSizeSelect"));
+  const btnRuler = document.getElementById("btnRuler");
+  const btnInspect = document.getElementById("btnInspect");
+  const btnOpenBrowser = document.getElementById("btnOpenBrowser");
+  const hRuler = /** @type {HTMLCanvasElement} */ (document.getElementById("hRuler"));
+  const vRuler = /** @type {HTMLCanvasElement} */ (document.getElementById("vRuler"));
+  const rulerCorner = document.getElementById("rulerCorner");
+  const gridOverlay = document.getElementById("gridOverlay");
+  const inspectorPanel = document.getElementById("inspectorPanel");
+  const inspSelector = document.getElementById("inspSelector");
+  const inspStyles = document.getElementById("inspStyles");
+  const bmMT = document.getElementById("bmMT");
+  const bmMR = document.getElementById("bmMR");
+  const bmMB = document.getElementById("bmMB");
+  const bmML = document.getElementById("bmML");
+  const bmBT = document.getElementById("bmBT");
+  const bmBR = document.getElementById("bmBR");
+  const bmBB = document.getElementById("bmBB");
+  const bmBL = document.getElementById("bmBL");
+  const bmPT = document.getElementById("bmPT");
+  const bmPR = document.getElementById("bmPR");
+  const bmPB = document.getElementById("bmPB");
+  const bmPL = document.getElementById("bmPL");
+  const bmW = document.getElementById("bmW");
+  const bmH = document.getElementById("bmH");
 
   // ── Measure native scrollbar width once (0 on macOS overlay scrollbars) ──────
   const SCROLLBAR_WIDTH = (() => {
@@ -61,6 +93,17 @@
   // ── Message handler ─────────────────────────────────────────────────────────
   window.addEventListener("message", (event) => {
     const msg = event.data;
+
+    // Messages from the inspector script running inside the iframe
+    if (msg?.type === "__resview_inspector_hover__") {
+      updateInspectorPanel(msg);
+      return;
+    }
+    if (msg?.type === "__resview_inspector_clear__") {
+      clearInspectorHover();
+      return;
+    }
+
     switch (msg.type) {
       case "init": {
         devices = msg.devices || [];
@@ -102,6 +145,8 @@
         updateDeleteButton();
         applyDevice();
 
+        proxyPort = msg.proxyPort || 0;
+
         // Load URL (not persisted intentionally)
         currentUrl = msg.url || "";
         if (currentUrl) {
@@ -111,6 +156,10 @@
         renderServers(msg.servers || []);
         break;
       }
+
+      case "inspectorReady":
+        preview.src = msg.proxyUrl;
+        break;
 
       case "setUrl":
         currentUrl = msg.url;
@@ -157,7 +206,12 @@
     if (!url) return;
     currentUrl = url;
     urlInput.value = url;
-    preview.src = url;
+    if (showInspector) {
+      vscode.postMessage({ type: "inspectorToggle", enabled: true, url });
+      // Extension responds with inspectorReady + proxyUrl
+    } else {
+      preview.src = url;
+    }
   }
 
   btnGo.addEventListener("click", () => {
@@ -377,6 +431,220 @@
     cdError.hidden = false;
   }
 
+  // ── Inspector toggle ─────────────────────────────────────────────────────────
+  btnInspect.addEventListener("click", () => {
+    if (!currentUrl) return;
+    showInspector = !showInspector;
+    btnInspect.classList.toggle("active", showInspector);
+    if (showInspector) {
+      inspectorPanel.hidden = false;
+      vscode.postMessage({ type: "inspectorToggle", enabled: true, url: currentUrl });
+    } else {
+      inspectorPanel.hidden = true;
+      clearInspectorHover();
+      preview.src = currentUrl;
+      vscode.postMessage({ type: "inspectorToggle", enabled: false });
+    }
+  });
+
+  function updateInspectorPanel(msg) {
+    inspSelector.textContent = msg.selector || "—";
+    const b = msg.box || {};
+    bmMT.textContent = px(b.marginTop);
+    bmMR.textContent = px(b.marginRight);
+    bmMB.textContent = px(b.marginBottom);
+    bmML.textContent = px(b.marginLeft);
+    bmBT.textContent = px(b.borderTop);
+    bmBR.textContent = px(b.borderRight);
+    bmBB.textContent = px(b.borderBottom);
+    bmBL.textContent = px(b.borderLeft);
+    bmPT.textContent = px(b.paddingTop);
+    bmPR.textContent = px(b.paddingRight);
+    bmPB.textContent = px(b.paddingBottom);
+    bmPL.textContent = px(b.paddingLeft);
+    bmW.textContent = b.width ?? "—";
+    bmH.textContent = b.height ?? "—";
+
+    const s = msg.styles || {};
+    const entries = [
+      ["color", s.color],
+      ["background", s.backgroundColor],
+      ["font-size", s.fontSize],
+      ["font-family", s.fontFamily],
+      ["font-weight", s.fontWeight !== "400" && s.fontWeight !== "normal" ? s.fontWeight : ""],
+      ["line-height", s.lineHeight],
+      ["display", s.display],
+      ["position", s.position],
+      ["flex-dir", s.flexDirection],
+      ["gap", s.gap],
+      ["border-radius", s.borderRadius],
+      ["opacity", s.opacity],
+      ["z-index", s.zIndex],
+      ["overflow", s.overflow],
+    ].filter(([, v]) => v);
+
+    inspStyles.innerHTML = entries.map(([k, v]) => {
+      const isColor = k === "color" || k === "background";
+      const swatch = isColor
+        ? `<span class="insp-swatch" style="background:${v}"></span>`
+        : "";
+      return `<span class="insp-prop">${k}</span><span class="insp-val">${swatch}${v}</span>`;
+    }).join("");
+  }
+
+  function clearInspectorHover() {
+    inspSelector.textContent = "Hover over an element to inspect it";
+    inspStyles.innerHTML = "";
+    bmMT.textContent = bmMR.textContent = bmMB.textContent = bmML.textContent = "—";
+    bmBT.textContent = bmBR.textContent = bmBB.textContent = bmBL.textContent = "—";
+    bmPT.textContent = bmPR.textContent = bmPB.textContent = bmPL.textContent = "—";
+    bmW.textContent = bmH.textContent = "—";
+  }
+
+  function px(v) {
+    if (!v) return "—";
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return n === 0 ? "0" : Math.round(n) + "";
+  }
+
+  // ── Live Server shortcut ─────────────────────────────────────────────────────
+  document.getElementById("btnLiveServer").addEventListener("click", () => {
+    loadUrl("http://localhost:5500");
+  });
+
+  // ── Open in Browser ──────────────────────────────────────────────────────────
+  btnOpenBrowser.addEventListener("click", () => {
+    if (currentUrl) vscode.postMessage({ type: "openExternal", url: currentUrl });
+  });
+
+  // ── Grid toggle ──────────────────────────────────────────────────────────────
+  function applyGridSize() {
+    const size = gridSizeSelect.value + "px";
+    gridOverlay.style.backgroundSize = `${size} ${size}`;
+  }
+
+  btnGrid.addEventListener("click", () => {
+    showGrid = !showGrid;
+    btnGrid.classList.toggle("active", showGrid);
+    gridSizeSelect.classList.toggle("active", showGrid);
+    gridOverlay.hidden = !showGrid;
+    if (showGrid) applyGridSize();
+  });
+
+  gridSizeSelect.addEventListener("change", () => {
+    if (showGrid) applyGridSize();
+  });
+
+  // ── Ruler toggle ─────────────────────────────────────────────────────────────
+  btnRuler.addEventListener("click", () => {
+    showRuler = !showRuler;
+    btnRuler.classList.toggle("active", showRuler);
+    hRuler.hidden = !showRuler;
+    vRuler.hidden = !showRuler;
+    rulerCorner.hidden = !showRuler;
+    if (showRuler) drawRulers();
+  });
+
+  // ── Ruler drawing ────────────────────────────────────────────────────────────
+  const RULER_PX = 20;
+  const RULER_BG = "#10101e";
+  const RULER_BORDER = "rgba(68,68,90,0.7)";
+  const RULER_TICK = "rgba(205,214,244,0.4)";
+  const RULER_LABEL = "#6c7086";
+
+  function drawRulers() {
+    if (!currentDevice) return;
+    const dim =
+      isLandscape && currentDevice.landscape
+        ? currentDevice.landscape
+        : currentDevice.portrait;
+    const w = dim.width;
+    const h = dim.height;
+
+    // Position rulers flush with the content area (outside the bezel padding)
+    const ry = currentBezelV - RULER_PX;
+    const rx = currentBezelH - RULER_PX;
+    rulerCorner.style.top  = ry + "px";
+    rulerCorner.style.left = rx + "px";
+    hRuler.style.top  = ry + "px";
+    hRuler.style.left = currentBezelH + "px";
+    vRuler.style.top  = currentBezelV + "px";
+    vRuler.style.left = rx + "px";
+
+    drawHRuler(w);
+    drawVRuler(h);
+  }
+
+  function drawHRuler(devW) {
+    hRuler.width  = devW;
+    hRuler.height = RULER_PX;
+    const ctx = hRuler.getContext("2d");
+    ctx.fillStyle = RULER_BG;
+    ctx.fillRect(0, 0, devW, RULER_PX);
+    ctx.strokeStyle = RULER_BORDER;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, RULER_PX - 0.5);
+    ctx.lineTo(devW, RULER_PX - 0.5);
+    ctx.stroke();
+    ctx.strokeStyle = RULER_TICK;
+    ctx.fillStyle = RULER_LABEL;
+    ctx.font = "8px monospace";
+    ctx.textBaseline = "top";
+    for (let x = 0; x <= devW; x++) {
+      const isMajor = x % 100 === 0;
+      const isMid   = x % 50  === 0;
+      const isMinor = x % 10  === 0;
+      if (!isMinor) continue;
+      const tickH = isMajor ? 11 : isMid ? 7 : 4;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, RULER_PX);
+      ctx.lineTo(x + 0.5, RULER_PX - tickH);
+      ctx.stroke();
+      if (isMajor && x > 0) ctx.fillText(String(x), x + 2, 1);
+    }
+  }
+
+  function drawVRuler(devH) {
+    vRuler.width  = RULER_PX;
+    vRuler.height = devH;
+    const ctx = vRuler.getContext("2d");
+    ctx.fillStyle = RULER_BG;
+    ctx.fillRect(0, 0, RULER_PX, devH);
+    ctx.strokeStyle = RULER_BORDER;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(RULER_PX - 0.5, 0);
+    ctx.lineTo(RULER_PX - 0.5, devH);
+    ctx.stroke();
+    ctx.strokeStyle = RULER_TICK;
+    ctx.fillStyle = RULER_LABEL;
+    ctx.font = "8px monospace";
+    ctx.textBaseline = "middle";
+    for (let y = 0; y <= devH; y++) {
+      const isMajor = y % 100 === 0;
+      const isMid   = y % 50  === 0;
+      const isMinor = y % 10  === 0;
+      if (!isMinor) continue;
+      const tickW = isMajor ? 11 : isMid ? 7 : 4;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(RULER_PX, y + 0.5);
+      ctx.lineTo(RULER_PX - tickW, y + 0.5);
+      ctx.stroke();
+      if (isMajor && y > 0) {
+        const label = String(y);
+        ctx.save();
+        ctx.translate(RULER_PX / 2, y);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(label, -ctx.measureText(label).width / 2, 0);
+        ctx.restore();
+      }
+    }
+  }
+
   // ── Delete Custom Device ─────────────────────────────────────────────────────
   btnDeleteDevice.addEventListener("click", () => {
     if (!currentDevice?.custom) return;
@@ -417,6 +685,9 @@
     const bezelThin  = isPhone ? 20 : isTablet ? 16 : 8;
     const bezelH = (!isDesktop && isLandscape) ? bezelThick : bezelThin;
     const bezelV = (!isDesktop && isLandscape) ? bezelThin  : bezelThick;
+
+    currentBezelH = bezelH;
+    currentBezelV = bezelV;
 
     frameWrapper.style.width = w + "px";
     frameWrapper.style.height = h + "px";
@@ -462,6 +733,7 @@
     preview.style.width  = (w + sbOffset) + "px";
     preview.style.height = h + "px";
 
+    if (showRuler) drawRulers();
     persistState();
   }
 })();
