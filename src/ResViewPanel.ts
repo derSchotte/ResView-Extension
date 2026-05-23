@@ -298,7 +298,10 @@ export class ResViewPanel {
 
     <!-- Inspector Panel -->
     <div id="inspectorPanel" class="inspector-panel" hidden>
-      <div class="insp-selector" id="inspSelector">Hover over an element to inspect it</div>
+      <div class="insp-selector-row">
+        <span class="insp-selector" id="inspSelector">Hover over an element to inspect it</span>
+        <span class="insp-sources" id="inspSources"></span>
+      </div>
       <div class="insp-body">
         <div class="insp-boxmodel">
           <div class="bm-margin bm-layer">

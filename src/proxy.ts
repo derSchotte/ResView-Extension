@@ -15,6 +15,28 @@ const INSPECTOR_SCRIPT = `(function(){
     }
     return hl;
   }
+  function getSources(el){
+    var found=[];
+    var sheets=document.styleSheets;
+    for(var i=0;i<sheets.length;i++){
+      try{
+        var rules=sheets[i].cssRules;
+        if(!rules)continue;
+        for(var j=0;j<rules.length;j++){
+          var rule=rules[j];
+          if(!rule.selectorText)continue;
+          try{
+            if(el.matches(rule.selectorText)){
+              var href=sheets[i].href;
+              var name=href?href.split('/').pop().split('?')[0]:'<style>';
+              if(found.indexOf(name)<0)found.push(name);
+            }
+          }catch(e){}
+        }
+      }catch(e){}
+    }
+    return found;
+  }
   document.addEventListener('mouseover',function(e){
     var el=e.target;
     if(!el||el.nodeType!==1||el===hl)return;
@@ -30,6 +52,7 @@ const INSPECTOR_SCRIPT = `(function(){
     window.parent.postMessage({
       type:'__resview_inspector_hover__',
       selector:tag+id+cls,
+      sources:getSources(el),
       box:{
         width:Math.round(r.width),height:Math.round(r.height),
         marginTop:cs.marginTop,marginRight:cs.marginRight,

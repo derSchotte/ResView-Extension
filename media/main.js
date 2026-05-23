@@ -49,6 +49,7 @@
   const gridOverlay = document.getElementById("gridOverlay");
   const inspectorPanel = document.getElementById("inspectorPanel");
   const inspSelector = document.getElementById("inspSelector");
+  const inspSources = document.getElementById("inspSources");
   const inspStyles = document.getElementById("inspStyles");
   const bmMT = document.getElementById("bmMT");
   const bmMR = document.getElementById("bmMR");
@@ -449,6 +450,9 @@
 
   function updateInspectorPanel(msg) {
     inspSelector.textContent = msg.selector || "—";
+    inspSources.innerHTML = (msg.sources || [])
+      .map((f) => `<span class="insp-source-file">${f}</span>`)
+      .join("");
     const b = msg.box || {};
     bmMT.textContent = px(b.marginTop);
     bmMR.textContent = px(b.marginRight);

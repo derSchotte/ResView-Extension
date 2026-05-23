@@ -630,16 +630,44 @@ html, body {
   overflow: hidden;
 }
 
-.insp-selector {
-  color: var(--accent);
-  font-family: monospace;
-  font-size: 12px;
+.insp-selector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 4px 8px;
+  min-width: 0;
+}
+
+.insp-selector {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.insp-sources {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+.insp-source-file {
+  background: rgba(166, 227, 161, 0.1);
+  border: 1px solid rgba(166, 227, 161, 0.35);
+  border-radius: 3px;
+  color: #a6e3a1;
+  font-family: monospace;
+  font-size: 10px;
+  padding: 1px 6px;
   white-space: nowrap;
 }
 
