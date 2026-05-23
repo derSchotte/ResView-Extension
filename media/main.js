@@ -448,10 +448,14 @@
     }
   });
 
+  function escHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   function updateInspectorPanel(msg) {
     inspSelector.textContent = msg.selector || "—";
     inspSources.innerHTML = (msg.sources || [])
-      .map((f) => `<span class="insp-source-file">${f}</span>`)
+      .map((f) => `<span class="insp-source-file">${escHtml(f)}</span>`)
       .join("");
     const b = msg.box || {};
     bmMT.textContent = px(b.marginTop);
