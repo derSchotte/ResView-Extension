@@ -11,6 +11,7 @@ interface UiState {
   deviceName?: string;
   zoom?: number;
   landscape?: boolean;
+  urlCollapsed?: boolean;
 }
 
 export class ResViewPanel {
@@ -239,20 +240,26 @@ export class ResViewPanel {
     <header id="toolbar">
       <div class="toolbar-row toolbar-row--top">
         <div class="url-group">
-          <label class="label" for="urlInput">URL</label>
-          <div class="url-row">
-            <input id="urlInput" class="url-input" type="url" placeholder="http://localhost:3000" spellcheck="false" />
-            <button id="btnGo" class="btn btn-primary" title="Load URL">Go</button>
-            <button id="btnRescan" class="btn btn-icon" title="Re-scan for dev servers">
-              <span class="icon">⟳</span>
-            </button>
-            <button id="btnOpenBrowser" class="btn btn-icon" title="Open in system browser">↗</button>
-          </div>
-          <div class="server-chips-row">
-            <button id="btnLiveServer" class="server-chip server-chip--pinned" title="Load http://localhost:5500">
-              <span class="server-badge server-badge--pin">⚡</span> Live Server :5500
-            </button>
-            <div id="serverChips" class="server-chips"></div>
+          <button class="url-header" id="btnUrlToggle" title="URL-Leiste ein-/ausklappen">
+            <span class="label">URL</span>
+            <span id="urlCollapsedHint" class="url-collapsed-hint"></span>
+            <span id="urlChevron" class="url-chevron">▾</span>
+          </button>
+          <div id="urlCollapsible" class="url-collapsible">
+            <div class="url-row">
+              <input id="urlInput" class="url-input" type="url" placeholder="http://localhost:3000" spellcheck="false" />
+              <button id="btnGo" class="btn btn-primary" title="Load URL">Go</button>
+              <button id="btnRescan" class="btn btn-icon" title="Re-scan for dev servers">
+                <span class="icon">⟳</span>
+              </button>
+              <button id="btnOpenBrowser" class="btn btn-icon" title="Open in system browser">↗</button>
+            </div>
+            <div class="server-chips-row">
+              <button id="btnLiveServer" class="server-chip server-chip--pinned" title="Load http://localhost:5500">
+                <span class="server-badge server-badge--pin">⚡</span> Live Server :5500
+              </button>
+              <div id="serverChips" class="server-chips"></div>
+            </div>
           </div>
         </div>
       </div>

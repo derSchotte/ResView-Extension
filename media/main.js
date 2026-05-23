@@ -12,6 +12,7 @@
   let isLandscape = false;
   let zoomLevel = 75;
   let currentUrl = "";
+  let urlCollapsed = false;
   let showGrid = false;
   let showRuler = false;
   let showInspector = false;
@@ -21,6 +22,10 @@
 
   // ── DOM refs ───────────────────────────────────────────────────────────────
   const urlInput = /** @type {HTMLInputElement} */ (document.getElementById("urlInput"));
+  const btnUrlToggle = document.getElementById("btnUrlToggle");
+  const urlCollapsible = document.getElementById("urlCollapsible");
+  const urlCollapsedHint = document.getElementById("urlCollapsedHint");
+  const urlChevron = document.getElementById("urlChevron");
   const btnGo = document.getElementById("btnGo");
   const btnRescan = document.getElementById("btnRescan");
   const serverChips = document.getElementById("serverChips");
@@ -125,6 +130,8 @@
           zoomLabel.textContent = zoomLevel + " %";
         }
 
+        if (saved.urlCollapsed) setUrlCollapsed(true);
+
         // Build list for the restored category (auto-selects first device)
         buildDeviceSelect();
 
@@ -207,6 +214,7 @@
     if (!url) return;
     currentUrl = url;
     urlInput.value = url;
+    urlCollapsedHint.textContent = urlCollapsed ? url : "";
     if (showInspector) {
       vscode.postMessage({ type: "inspectorToggle", enabled: true, url });
       // Extension responds with inspectorReady + proxyUrl
@@ -526,6 +534,9 @@
     if (currentUrl) vscode.postMessage({ type: "openExternal", url: currentUrl });
   });
 
+  // ── URL bar collapse ──────────────────────────────────────────────────────────
+  btnUrlToggle.addEventListener("click", () => setUrlCollapsed(!urlCollapsed));
+
   // ── Grid toggle ──────────────────────────────────────────────────────────────
   function applyGridSize() {
     const size = gridSizeSelect.value + "px";
@@ -668,8 +679,17 @@
         deviceName: currentDevice?.name || null,
         zoom: zoomLevel,
         landscape: isLandscape,
+        urlCollapsed,
       },
     });
+  }
+
+  function setUrlCollapsed(v) {
+    urlCollapsed = v;
+    urlCollapsible.classList.toggle("url-collapsed", v);
+    urlChevron.classList.toggle("collapsed", v);
+    urlCollapsedHint.textContent = v && currentUrl ? currentUrl : "";
+    persistState();
   }
 
   // ── Core: apply device dimensions ────────────────────────────────────────────

@@ -2,7 +2,11 @@
   "name": "resview",
   "displayName": "ResView – Responsive Design Tester",
   "description": "Test responsive designs (Mobile First) without leaving VS Code. Preview sites in phones, tablets and desktop views with portrait/landscape toggle.",
-  "version": "1.1.15",
+  "version": "1.1.16",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/derSchotte/ResView-Extension"
+  },
   "publisher": "derSchotte",
   "author": "derSchotte",
   "license": "MIT",

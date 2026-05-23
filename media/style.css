@@ -78,6 +78,52 @@ html, body {
   width: 100%;
 }
 
+.url-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  width: 100%;
+  color: inherit;
+  text-align: left;
+}
+.url-header:hover .url-chevron { color: var(--text); }
+
+.url-collapsed-hint {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+.url-chevron {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.url-chevron.collapsed { transform: rotate(-90deg); }
+
+.url-collapsible {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  max-height: 120px;
+  opacity: 1;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.url-collapsible.url-collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
 .url-row {
   display: flex;
   gap: 6px;
