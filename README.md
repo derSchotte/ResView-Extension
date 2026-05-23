@@ -37,9 +37,13 @@ Toggle horizontal and vertical rulers with the **Ruler** button. Rulers appear o
 Activate the **Inspect** button to enter element inspection mode. ResView starts a local HTTP proxy that injects an inspector script into every page response. Hovering over elements shows:
 
 - A violet highlight around the hovered element
-- The element's CSS selector
+- The element's CSS selector — plus **green badges showing which CSS file** each rule comes from (e.g. `App.css`, `styles.css`)
 - A **box model diagram** (margin / border / padding / content) in Firefox DevTools style
 - Key computed styles: color, background, font-size, font-family, display, position, border-radius, and more — with inline color swatches
+
+CSS source detection works for external stylesheets, Vite/React CSS imports (`data-vite-dev-id`), and rules inside `@media`, `@supports`, and `@layer` blocks.
+
+**Hot Reload support:** CSS and JS changes made in your editor are picked up instantly in the preview — no need to toggle Inspector off and on. The proxy forwards Vite's HMR WebSocket connection transparently.
 
 > **Note:** Inspector Mode requires a locally running HTTP server (e.g. `localhost:3000`, `localhost:5500`). External HTTPS sites are not supported.
 
@@ -154,9 +158,11 @@ Click **Ruler** to show horizontal and vertical pixel rulers alongside the devic
 
 Click **Inspect** to activate element inspection (requires a running localhost server). Hover over any element in the preview to see:
 
-- The element's CSS selector
+- The element's CSS selector, with **green source file badges** showing which CSS file(s) the rule comes from
 - Full box model: margin, border, padding, and content dimensions
 - Computed styles: color (with swatch), background, font-size, font-family, font-weight, line-height, display, position, flex-direction, gap, border-radius, opacity, z-index, overflow
+
+**Hot Reload:** Changes to CSS or JS files in your editor appear immediately in the preview — Vite's HMR WebSocket is tunnelled through the proxy so the connection is never interrupted.
 
 Click **Inspect** again to exit inspection mode and return to the normal preview.
 
