@@ -731,6 +731,7 @@ html, body {
   height: 170px;
   overflow: hidden;
 }
+#inspectorPanel[hidden] { display: none; }
 
 .insp-selector-row {
   display: flex;
@@ -995,7 +996,8 @@ html, body {
   justify-content: center;
   padding: 12px 8px;
   border-right: 1px solid var(--border);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .cr-props {
