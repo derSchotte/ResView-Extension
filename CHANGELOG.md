@@ -4,6 +4,22 @@ All notable changes to ResView are documented here.
 
 ---
 
+## [1.1.21] – 2026-05-26
+
+### Changed
+- **TypeScript backend fully restructured.** Split into dedicated modules: `src/types.ts` (shared types), `src/constants.ts` (all magic strings/keys), `src/storage.ts` (Repository pattern for devices and UI state), `src/WebviewHtml.ts` (Builder pattern for HTML/CSP). Private fields and methods use consistent naming with TypeScript `private` modifiers throughout.
+- **Frontend split into native ES modules.** The monolithic `media/main.js` has been replaced by 12 focused ES module files loaded natively by the browser — no bundler required: `app.js`, `appState.js`, `bridges.js`, `constants.js`, `utils.js`, `eventEmitter.js`, and six controller modules under `media/controllers/`.
+- **Observer / EventEmitter pattern introduced.** A lightweight `EventEmitter` base class drives all internal communication. `AppState` extends it and emits typed events; controllers subscribe instead of calling each other directly.
+- **Repository pattern for storage.** `DeviceRepository` and `UiStateRepository` encapsulate all `globalState` reads/writes, removing scattered storage calls from `ResViewPanel`.
+- **Command pattern for message dispatch.** `ResViewPanel.handleMessage()` routes each inbound message type to a dedicated handler method, replacing a large switch block.
+- **CSP hardened.** Nonce is now generated with `crypto.randomBytes(16)` (cryptographically secure). `webview.cspSource` is added to `script-src` so ES module imports from the media directory are allowed without `'unsafe-inline'`.
+- **URL parsing modernised.** Deprecated `url.parse()` replaced throughout the proxy with `new URL()`.
+- **XSS hardening in CSS rules panel.** CSS property names and values from the inspected page are now inserted via `textContent`/`createTextNode` instead of `innerHTML`.
+- **Error message sanitisation in proxy.** Upstream errors no longer expose `err.message` in response bodies.
+- **`onOpenExternal` URL scheme validation.** Only `http:` and `https:` URLs may be opened in the system browser; all other schemes are rejected.
+
+---
+
 ## [1.1.20] – 2026-05-26
 
 ### Added

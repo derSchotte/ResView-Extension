@@ -1,7 +1,22 @@
 import * as http from "http";
 import * as https from "https";
 import * as net from "net";
-import * as url from "url";
+
+// Maps mouse events to synthetic Touch events so that touch-only listeners
+// (swipe gestures, mobile sliders, etc.) work inside the preview iframe.
+// navigator.maxTouchPoints is patched so libraries that gate on touch support
+// treat the page as a touch device.
+const TOUCH_SCRIPT = `(function(){
+  'use strict';
+  try{Object.defineProperty(navigator,'maxTouchPoints',{get:function(){return 1;},configurable:true});}catch(e){}
+  var drag=false,last=null;
+  function mk(e){return new Touch({identifier:1,target:e.target,clientX:e.clientX,clientY:e.clientY,screenX:e.screenX,screenY:e.screenY,pageX:e.pageX,pageY:e.pageY,radiusX:1,radiusY:1,rotationAngle:0,force:1});}
+  function fire(type,e,t){var a=type==='touchend'||type==='touchcancel'?[]:[t];try{e.target.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,touches:a,targetTouches:a,changedTouches:[t]}));}catch(x){}}
+  document.addEventListener('mousedown',function(e){if(e.button!==0||!e.target||e.target.id==='__rv_hl__')return;drag=true;last=mk(e);fire('touchstart',e,last);},true);
+  document.addEventListener('mousemove',function(e){if(!drag)return;last=mk(e);fire('touchmove',e,last);},true);
+  document.addEventListener('mouseup',function(e){if(!drag)return;drag=false;var t=last||mk(e);last=null;fire('touchend',e,t);},true);
+  document.addEventListener('mouseleave',function(e){if(!drag)return;drag=false;var t=last||mk(e);last=null;fire('touchcancel',e,t);},true);
+})();`;
 
 const INSPECTOR_SCRIPT = `(function(){
   'use strict';
@@ -93,7 +108,6 @@ const INSPECTOR_SCRIPT = `(function(){
     if(hl)hl.style.display='none';
     window.parent.postMessage({type:'__resview_inspector_clear__'},'*');
   });
-  // ── CSS Rules ──────────────────────────────────────────────────────────────
   function _rvCollectCss(){
     var rules=[];
     var sheets=document.styleSheets;
@@ -138,36 +152,66 @@ const INSPECTOR_SCRIPT = `(function(){
 })();`;
 
 export class InspectorProxy {
-  private _server: http.Server | null = null;
-  private _port = 0;
-  private _targetBase = "";
+  private server: http.Server | null = null;
+  private port = 0;
+  private targetBase = "";
+  private inspectorEnabled = false;
 
   async start(): Promise<number> {
     return new Promise((resolve, reject) => {
-      this._server = http.createServer((req, res) => this._handle(req, res));
-      this._server.on("upgrade", (req, socket, head) =>
-        this._handleUpgrade(req, socket as net.Socket, head)
+      this.server = http.createServer((req, res) => this.handleRequest(req, res));
+      this.server.on("upgrade", (req, socket, head) =>
+        this.handleUpgrade(req, socket as net.Socket, head)
       );
-      this._server.listen(0, "127.0.0.1", () => {
-        this._port = (this._server!.address() as net.AddressInfo).port;
-        resolve(this._port);
+      this.server.listen(0, "127.0.0.1", () => {
+        this.port = (this.server!.address() as net.AddressInfo).port;
+        resolve(this.port);
       });
-      this._server.on("error", reject);
+      this.server.on("error", reject);
     });
   }
 
-  private _handleUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
-    if (!this._targetBase) { socket.destroy(); return; }
-    const parsed = url.parse(this._targetBase);
-    const targetPort = parsed.port ? parseInt(parsed.port) : 80;
-    const targetHost = parsed.hostname!;
+  get proxyPort(): number {
+    return this.port;
+  }
 
-    const upstream = net.connect(targetPort, targetHost, () => {
-      const lines: string[] = [`GET ${req.url} HTTP/1.1`];
-      for (const [k, v] of Object.entries(req.headers)) {
-        lines.push(`${k}: ${k === "host" ? parsed.host : (Array.isArray(v) ? v.join(", ") : v)}`);
-      }
-      lines.push("", "");
+  setInspectorEnabled(enabled: boolean): void {
+    this.inspectorEnabled = enabled;
+  }
+
+  setTarget(targetUrl: string): void {
+    const parsed = new URL(targetUrl);
+    this.targetBase = `${parsed.protocol}//${parsed.host}`;
+  }
+
+  proxyUrlFor(originalUrl: string): string {
+    const parsed = new URL(originalUrl);
+    return `http://127.0.0.1:${this.port}${parsed.pathname}${parsed.search}`;
+  }
+
+  stop(): void {
+    this.server?.close();
+    this.server = null;
+  }
+
+  private handleUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
+    if (!this.targetBase) {
+      socket.destroy();
+      return;
+    }
+
+    const target = new URL(this.targetBase);
+    const targetPort = target.port ? parseInt(target.port, 10) : 80;
+
+    const upstream = net.connect(targetPort, target.hostname, () => {
+      const lines = [
+        `GET ${req.url} HTTP/1.1`,
+        ...Object.entries(req.headers).map(([k, v]) =>
+          `${k}: ${k === "host" ? target.host : (Array.isArray(v) ? v.join(", ") : v)}`
+        ),
+        "",
+        "",
+      ];
       upstream.write(lines.join("\r\n"));
       if (head?.length) upstream.write(head);
       upstream.pipe(socket);
@@ -178,109 +222,112 @@ export class InspectorProxy {
     socket.on("error", () => upstream.destroy());
   }
 
-  get port(): number {
-    return this._port;
-  }
-
-  setTarget(targetUrl: string): void {
-    const parsed = url.parse(targetUrl);
-    this._targetBase = `${parsed.protocol}//${parsed.host}`;
-  }
-
-  proxyUrlFor(originalUrl: string): string {
-    const parsed = url.parse(originalUrl);
-    return `http://127.0.0.1:${this._port}${parsed.path || "/"}`;
-  }
-
-  stop(): void {
-    this._server?.close();
-    this._server = null;
-  }
-
-  private _handle(req: http.IncomingMessage, res: http.ServerResponse): void {
-    if (!this._targetBase) {
+  private handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+    if (!this.targetBase) {
       res.writeHead(502);
       res.end("No proxy target configured");
       return;
     }
 
-    const targetUrl = this._targetBase + (req.url || "/");
-    const parsed = url.parse(targetUrl);
-    const lib = parsed.protocol === "https:" ? https : http;
+    let targetUrl: URL;
+    try {
+      targetUrl = new URL((req.url ?? "/"), this.targetBase);
+    } catch {
+      res.writeHead(400);
+      res.end("Invalid request path");
+      return;
+    }
 
-    const headers: http.OutgoingHttpHeaders = { ...req.headers };
-    headers["host"] = parsed.host!;
-    headers["accept-encoding"] = "identity";
+    const lib = targetUrl.protocol === "https:" ? https : http;
+    const defaultPort = targetUrl.protocol === "https:" ? 443 : 80;
+
+    const requestHeaders: http.OutgoingHttpHeaders = { ...req.headers };
+    requestHeaders["host"] = targetUrl.host;
+    requestHeaders["accept-encoding"] = "identity";
 
     const options: http.RequestOptions = {
-      hostname: parsed.hostname!,
-      port: parsed.port
-        ? parseInt(parsed.port)
-        : parsed.protocol === "https:"
-        ? 443
-        : 80,
-      path: parsed.path || "/",
-      method: req.method || "GET",
-      headers,
+      hostname: targetUrl.hostname,
+      port: targetUrl.port ? parseInt(targetUrl.port, 10) : defaultPort,
+      path: targetUrl.pathname + targetUrl.search,
+      method: req.method ?? "GET",
+      headers: requestHeaders,
     };
 
-    const proxyReq = lib.request(options, (proxyRes) => {
-      const ct = proxyRes.headers["content-type"] || "";
-      const isHtml = ct.includes("text/html");
-      const statusCode = proxyRes.statusCode || 200;
-      const respHeaders: http.OutgoingHttpHeaders = { ...proxyRes.headers };
+    const proxyReq = lib.request(options, (proxyRes) =>
+      this.handleProxyResponse(proxyRes, res)
+    );
 
-      delete respHeaders["x-frame-options"];
-      delete respHeaders["content-security-policy"];
-
-      if (respHeaders["location"]) {
-        const loc = respHeaders["location"] as string;
-        const base = `http://127.0.0.1:${this._port}`;
-        if (loc.startsWith(this._targetBase)) {
-          respHeaders["location"] = base + loc.slice(this._targetBase.length);
-        } else if (loc.startsWith("/")) {
-          respHeaders["location"] = base + loc;
-        }
-      }
-
-      if (isHtml) {
-        delete respHeaders["content-length"];
-      }
-
-      res.writeHead(statusCode, respHeaders);
-
-      if (!isHtml) {
-        proxyRes.pipe(res);
-        return;
-      }
-
-      const chunks: Buffer[] = [];
-      proxyRes.on("data", (c: Buffer) => chunks.push(c));
-      proxyRes.on("end", () => {
-        let html = Buffer.concat(chunks).toString("utf-8");
-        html = this._inject(html);
-        res.end(html);
-      });
-    });
-
-    proxyReq.on("error", (err) => {
-      if (!res.headersSent) {
-        res.writeHead(502);
-      }
-      res.end(`Proxy error: ${err.message}`);
+    proxyReq.on("error", () => {
+      if (!res.headersSent) res.writeHead(502);
+      res.end("Upstream connection failed");
     });
 
     req.pipe(proxyReq);
   }
 
-  private _inject(html: string): string {
-    const tag = `<script id="__rv_inspector__">${INSPECTOR_SCRIPT}<\/script>`;
-    if (/<\/body>/i.test(html)) {
-      return html.replace(/<\/body>/i, `${tag}</body>`);
+  private handleProxyResponse(
+    proxyRes: http.IncomingMessage,
+    res: http.ServerResponse
+  ): void {
+    const contentType = proxyRes.headers["content-type"] ?? "";
+    const isHtml = contentType.includes("text/html");
+    const statusCode = proxyRes.statusCode ?? 200;
+    const responseHeaders = this.buildResponseHeaders(proxyRes.headers, isHtml);
+
+    res.writeHead(statusCode, responseHeaders);
+
+    if (!isHtml) {
+      proxyRes.pipe(res);
+      return;
     }
-    if (/<\/html>/i.test(html)) {
-      return html.replace(/<\/html>/i, `${tag}</html>`);
+
+    const chunks: Buffer[] = [];
+    proxyRes.on("data", (chunk: Buffer) => chunks.push(chunk));
+    proxyRes.on("end", () => {
+      const html = Buffer.concat(chunks).toString("utf-8");
+      res.end(this.injectScripts(html));
+    });
+  }
+
+  private buildResponseHeaders(
+    incoming: http.IncomingHttpHeaders,
+    isHtml: boolean
+  ): http.OutgoingHttpHeaders {
+    const headers: http.OutgoingHttpHeaders = { ...incoming };
+
+    // Remove headers that would block iframe embedding
+    delete headers["x-frame-options"];
+    delete headers["content-security-policy"];
+
+    if (headers["location"]) {
+      headers["location"] = this.rewriteLocation(headers["location"] as string);
     }
+
+    // Content-length is invalid after script injection
+    if (isHtml) delete headers["content-length"];
+
+    return headers;
+  }
+
+  private rewriteLocation(location: string): string {
+    const base = `http://127.0.0.1:${this.port}`;
+    if (location.startsWith(this.targetBase)) {
+      return base + location.slice(this.targetBase.length);
+    }
+    if (location.startsWith("/")) {
+      return base + location;
+    }
+    return location;
+  }
+
+  private injectScripts(html: string): string {
+    const touch = `<script id="__rv_touch__">${TOUCH_SCRIPT}<\/script>`;
+    const inspector = this.inspectorEnabled
+      ? `<script id="__rv_inspector__">${INSPECTOR_SCRIPT}<\/script>`
+      : "";
+    const tag = touch + inspector;
+    if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tag}</body>`);
+    if (/<\/html>/i.test(html)) return html.replace(/<\/html>/i, `${tag}</html>`);
     return html + tag;
   }
 }
