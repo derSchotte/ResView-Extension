@@ -46,6 +46,28 @@
   const zoomRange = /** @type {HTMLInputElement} */ (document.getElementById("zoomRange"));
   const zoomLabel = document.getElementById("zoomLabel");
   const tabBtns = document.querySelectorAll(".tab-btn");
+  const btnCssRules = document.getElementById("btnCssRules");
+  const cssRulesPanel = document.getElementById("cssRulesPanel");
+  const crSearch = /** @type {HTMLInputElement} */ (document.getElementById("crSearch"));
+  const crCount = document.getElementById("crCount");
+  const crList = document.getElementById("crList");
+  const crProps = document.getElementById("crProps");
+  const crBmMT = document.getElementById("crBmMT");
+  const crBmMR = document.getElementById("crBmMR");
+  const crBmMB = document.getElementById("crBmMB");
+  const crBmML = document.getElementById("crBmML");
+  const crBmBT = document.getElementById("crBmBT");
+  const crBmBR = document.getElementById("crBmBR");
+  const crBmBB = document.getElementById("crBmBB");
+  const crBmBL = document.getElementById("crBmBL");
+  const crBmPT = document.getElementById("crBmPT");
+  const crBmPR = document.getElementById("crBmPR");
+  const crBmPB = document.getElementById("crBmPB");
+  const crBmPL = document.getElementById("crBmPL");
+  const crBmW  = document.getElementById("crBmW");
+  const crBmH  = document.getElementById("crBmH");
+  const crClearSearch = document.getElementById("crClearSearch");
+  const crRefresh = document.getElementById("crRefresh");
   const btnGrid = document.getElementById("btnGrid");
   const gridSizeSelect = /** @type {HTMLSelectElement} */ (document.getElementById("gridSizeSelect"));
   const btnRuler = document.getElementById("btnRuler");
@@ -110,6 +132,10 @@
     }
     if (msg?.type === "__resview_inspector_clear__") {
       clearInspectorHover();
+      return;
+    }
+    if (msg?.type === "__resview_css_rules__") {
+      receiveCssRules(msg.rules || []);
       return;
     }
 
@@ -449,6 +475,7 @@
     btnInspect.classList.toggle("active", showInspector);
     if (showInspector) {
       inspectorPanel.hidden = false;
+      closeCssRulesPanel();
       vscode.postMessage({ type: "inspectorToggle", enabled: true, url: currentUrl });
     } else {
       inspectorPanel.hidden = true;
@@ -671,6 +698,195 @@
     if (!currentDevice?.custom) return;
     vscode.postMessage({ type: "deleteCustomDevice", name: currentDevice.name });
   });
+
+  // ── CSS Rules Panel ──────────────────────────────────────────────────────────
+  let allCssRules = [];
+  let showCssRules = false;
+  let selectedCssRule = null;
+
+  btnCssRules.addEventListener("click", () => {
+    showCssRules = !showCssRules;
+    btnCssRules.classList.toggle("active", showCssRules);
+    cssRulesPanel.hidden = !showCssRules;
+    if (showCssRules) {
+      inspectorPanel.hidden = true;
+      if (showInspector) {
+        requestCssRules();
+        setTimeout(() => crSearch.focus(), 50);
+      }
+    } else {
+      sendToFrame({ type: "__resview_clear_highlight__" });
+    }
+  });
+
+  crRefresh.addEventListener("click", requestCssRules);
+
+  crClearSearch.addEventListener("click", () => {
+    crSearch.value = "";
+    filterCssRules("");
+    crSearch.focus();
+  });
+
+  crSearch.addEventListener("input", () => filterCssRules(crSearch.value));
+
+  // Re-fetch rules after every page load (in case the user navigated)
+  preview.addEventListener("load", () => {
+    if (showCssRules && showInspector) setTimeout(requestCssRules, 600);
+  });
+
+  function sendToFrame(msg) {
+    try { preview.contentWindow.postMessage(msg, "*"); } catch (e) {}
+  }
+
+  function requestCssRules() {
+    crList.innerHTML = '<span class="cr-hint cr-loading">Loading…</span>';
+    crProps.innerHTML = '<span class="cr-hint">Select a rule to see its properties</span>';
+    resetCrBoxModel();
+    selectedCssRule = null;
+    sendToFrame({ type: "__resview_get_css_rules__" });
+  }
+
+  function resetCrBoxModel() {
+    [crBmMT, crBmMR, crBmMB, crBmML, crBmBT, crBmBR, crBmBB, crBmBL,
+     crBmPT, crBmPR, crBmPB, crBmPL].forEach(el => { el.textContent = "—"; });
+    crBmW.textContent = crBmH.textContent = "—";
+  }
+
+  function getBoxVal(props, key) {
+    const p = props.find(p => p.n === key);
+    return p ? p.v : "";
+  }
+
+  function parseSide(shorthand, idx) {
+    if (!shorthand) return "";
+    const parts = shorthand.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return (idx === 1 || idx === 3) ? parts[1] : parts[0];
+    if (parts.length === 3) {
+      if (idx === 0) return parts[0];
+      if (idx === 2) return parts[2];
+      return parts[1];
+    }
+    return parts[idx] || parts[0] || "";
+  }
+
+  function populateCrBoxModel(props) {
+    const mShort = getBoxVal(props, "margin");
+    crBmMT.textContent = px(getBoxVal(props, "margin-top")    || parseSide(mShort, 0));
+    crBmMR.textContent = px(getBoxVal(props, "margin-right")  || parseSide(mShort, 1));
+    crBmMB.textContent = px(getBoxVal(props, "margin-bottom") || parseSide(mShort, 2));
+    crBmML.textContent = px(getBoxVal(props, "margin-left")   || parseSide(mShort, 3));
+
+    const bwShort = getBoxVal(props, "border-width");
+    crBmBT.textContent = px(getBoxVal(props, "border-top-width")    || parseSide(bwShort, 0));
+    crBmBR.textContent = px(getBoxVal(props, "border-right-width")  || parseSide(bwShort, 1));
+    crBmBB.textContent = px(getBoxVal(props, "border-bottom-width") || parseSide(bwShort, 2));
+    crBmBL.textContent = px(getBoxVal(props, "border-left-width")   || parseSide(bwShort, 3));
+
+    const pShort = getBoxVal(props, "padding");
+    crBmPT.textContent = px(getBoxVal(props, "padding-top")    || parseSide(pShort, 0));
+    crBmPR.textContent = px(getBoxVal(props, "padding-right")  || parseSide(pShort, 1));
+    crBmPB.textContent = px(getBoxVal(props, "padding-bottom") || parseSide(pShort, 2));
+    crBmPL.textContent = px(getBoxVal(props, "padding-left")   || parseSide(pShort, 3));
+
+    crBmW.textContent = getBoxVal(props, "width")  || "—";
+    crBmH.textContent = getBoxVal(props, "height") || "—";
+  }
+
+  function receiveCssRules(rules) {
+    allCssRules = rules;
+    filterCssRules(crSearch.value);
+  }
+
+  function filterCssRules(query) {
+    const q = query.trim().toLowerCase();
+    const filtered = q
+      ? allCssRules.filter(r => r.sel.toLowerCase().includes(q) || r.file.toLowerCase().includes(q))
+      : allCssRules;
+
+    crCount.textContent = q
+      ? `${filtered.length} of ${allCssRules.length}`
+      : `${allCssRules.length} rules`;
+    crClearSearch.classList.toggle("cr-clear-visible", q.length > 0);
+
+    crList.innerHTML = "";
+    if (!filtered.length) {
+      const empty = document.createElement("span");
+      empty.className = "cr-hint";
+      empty.textContent = allCssRules.length ? "No matching rules" : "No CSS rules found";
+      crList.appendChild(empty);
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    filtered.forEach(rule => {
+      const item = document.createElement("div");
+      item.className = "cr-item";
+      if (selectedCssRule && selectedCssRule.sel === rule.sel && selectedCssRule.file === rule.file) {
+        item.classList.add("active");
+      }
+
+      const sel = document.createElement("div");
+      sel.className = "cr-sel";
+      sel.textContent = rule.sel;
+
+      const meta = document.createElement("div");
+      meta.className = "cr-meta";
+
+      const file = document.createElement("span");
+      file.className = "cr-file";
+      file.textContent = rule.file;
+      meta.appendChild(file);
+
+      if (rule.media) {
+        const media = document.createElement("span");
+        media.className = "cr-media";
+        media.textContent = rule.media;
+        meta.appendChild(media);
+      }
+
+      item.appendChild(sel);
+      item.appendChild(meta);
+      item.addEventListener("click", () => selectCssRule(rule, item));
+      frag.appendChild(item);
+    });
+    crList.appendChild(frag);
+  }
+
+  function selectCssRule(rule, itemEl) {
+    crList.querySelectorAll(".cr-item.active").forEach(el => el.classList.remove("active"));
+    itemEl.classList.add("active");
+    selectedCssRule = rule;
+    sendToFrame({ type: "__resview_highlight_selector__", selector: rule.sel });
+    populateCrBoxModel(rule.props);
+
+    if (!rule.props.length) {
+      crProps.innerHTML = '<span class="cr-hint">No properties</span>';
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    rule.props.forEach(p => {
+      const row = document.createElement("div");
+      row.className = "cr-prop-row";
+      const isColor = p.n.includes("color") || p.n === "background";
+      const swatchHtml = isColor
+        ? `<span class="cr-swatch" style="background:${p.v}"></span>`
+        : "";
+      row.innerHTML = `<span class="cr-prop-name">${p.n}</span><span class="cr-prop-sep">:</span><span class="cr-prop-val">${swatchHtml}${p.v}</span>`;
+      frag.appendChild(row);
+    });
+    crProps.innerHTML = "";
+    crProps.appendChild(frag);
+  }
+
+  function closeCssRulesPanel() {
+    if (!showCssRules) return;
+    showCssRules = false;
+    btnCssRules.classList.remove("active");
+    cssRulesPanel.hidden = true;
+    sendToFrame({ type: "__resview_clear_highlight__" });
+    selectedCssRule = null;
+  }
 
   // ── Device Info Popup ────────────────────────────────────────────────────────
   const diWrap = btnDeviceInfo.closest(".device-info-wrap");

@@ -358,9 +358,51 @@ export class ResViewPanel {
           </select>
           <button id="btnRuler" class="btn btn-icon btn-overlay-toggle" title="Toggle Ruler"><i data-lucide="ruler"></i></button>
           <button id="btnInspect" class="btn btn-icon btn-overlay-toggle" title="Inspector Mode (localhost only)"><i data-lucide="crosshair"></i></button>
+          <button id="btnCssRules" class="btn btn-icon btn-overlay-toggle" title="CSS Rules"><i data-lucide="braces"></i></button>
         </div>
       </div>
     </header>
+
+    <!-- CSS Rules Panel -->
+    <div id="cssRulesPanel" class="css-rules-panel" hidden>
+      <div class="cr-header">
+        <i data-lucide="search" class="cr-search-icon"></i>
+        <input id="crSearch" class="cr-search" type="text" placeholder="Search selectors or filenames…" autocomplete="off" spellcheck="false" />
+        <span id="crCount" class="cr-count"></span>
+        <button id="crClearSearch" class="btn btn-icon cr-clear-btn" title="Clear search"><i data-lucide="x"></i></button>
+        <button id="crRefresh" class="btn btn-icon cr-refresh-btn" title="Refresh rules"><i data-lucide="refresh-cw"></i></button>
+      </div>
+      <div class="cr-body">
+        <div id="crList" class="cr-list"></div>
+        <div class="cr-boxmodel-col">
+          <div class="insp-boxmodel">
+            <div class="bm-margin bm-layer">
+              <span class="bm-lbl">margin</span>
+              <span class="bm-t" id="crBmMT">—</span>
+              <span class="bm-r" id="crBmMR">—</span>
+              <span class="bm-b" id="crBmMB">—</span>
+              <span class="bm-l" id="crBmML">—</span>
+              <div class="bm-border bm-layer">
+                <span class="bm-lbl">border</span>
+                <span class="bm-t" id="crBmBT">—</span>
+                <span class="bm-r" id="crBmBR">—</span>
+                <span class="bm-b" id="crBmBB">—</span>
+                <span class="bm-l" id="crBmBL">—</span>
+                <div class="bm-padding bm-layer">
+                  <span class="bm-lbl">padding</span>
+                  <span class="bm-t" id="crBmPT">—</span>
+                  <span class="bm-r" id="crBmPR">—</span>
+                  <span class="bm-b" id="crBmPB">—</span>
+                  <span class="bm-l" id="crBmPL">—</span>
+                  <div class="bm-content"><span id="crBmW">—</span>&nbsp;×&nbsp;<span id="crBmH">—</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="crProps" class="cr-props"><span class="cr-hint">Select a rule to see its properties</span></div>
+      </div>
+    </div>
 
     <!-- Inspector Panel -->
     <div id="inspectorPanel" class="inspector-panel" hidden>

@@ -4,6 +4,14 @@ All notable changes to ResView are documented here.
 
 ---
 
+## [1.1.20] – 2026-05-26
+
+### Added
+- **Box model in CSS Rules panel.** The CSS Rules panel now has a three-column layout: rule list (left), Firefox-style box model (centre), and declared properties (right). When a CSS rule is selected, the box model visualises any declared margin, border-width, and padding values, with shorthand expansion.
+- **Panels are mutually exclusive.** The Inspector panel and the CSS Rules panel can no longer be open simultaneously. Opening one automatically closes the other.
+
+---
+
 ## [1.1.19] – 2026-05-26
 
 ### Changed
