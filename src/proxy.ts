@@ -93,6 +93,48 @@ const INSPECTOR_SCRIPT = `(function(){
     if(hl)hl.style.display='none';
     window.parent.postMessage({type:'__resview_inspector_clear__'},'*');
   });
+  // ── CSS Rules ──────────────────────────────────────────────────────────────
+  function _rvCollectCss(){
+    var rules=[];
+    var sheets=document.styleSheets;
+    var pageName=window.location.href.split('/').pop().split('?')[0]||'index';
+    function sName(s){
+      if(s.href)return s.href.split('/').pop().split('?')[0];
+      var n=s.ownerNode;
+      var v=n&&n.getAttribute&&n.getAttribute('data-vite-dev-id');
+      return v?v.split('/').pop().split('?')[0]:pageName;
+    }
+    function scan(cssRules,file,media){
+      for(var j=0;j<cssRules.length;j++){
+        var r=cssRules[j];
+        try{
+          if(r.selectorText){
+            var props=[];
+            for(var k=0;k<r.style.length;k++)props.push({n:r.style[k],v:r.style.getPropertyValue(r.style[k])});
+            rules.push({sel:r.selectorText,props:props,file:file,media:media});
+          }else if(r.cssRules){
+            scan(r.cssRules,file,r.conditionText||'');
+          }
+        }catch(e){}
+      }
+    }
+    for(var i=0;i<sheets.length;i++){
+      try{if(sheets[i].cssRules)scan(sheets[i].cssRules,sName(sheets[i]),'');}catch(e){}
+    }
+    return rules;
+  }
+  var _rvHlSt=null;
+  function _rvSetHl(sel){
+    if(!_rvHlSt){_rvHlSt=document.createElement('style');_rvHlSt.id='__rv_css_hl__';document.head.appendChild(_rvHlSt);}
+    try{_rvHlSt.textContent=sel?sel+'{background-color:rgba(220,50,50,0.15)!important;}':'';}catch(e){_rvHlSt.textContent='';}
+  }
+  window.addEventListener('message',function(e){
+    if(!e.data)return;
+    var t=e.data.type;
+    if(t==='__resview_get_css_rules__'){window.parent.postMessage({type:'__resview_css_rules__',rules:_rvCollectCss()},'*');}
+    else if(t==='__resview_highlight_selector__'){_rvSetHl(e.data.selector||'');}
+    else if(t==='__resview_clear_highlight__'){_rvSetHl('');}
+  });
 })();`;
 
 export class InspectorProxy {

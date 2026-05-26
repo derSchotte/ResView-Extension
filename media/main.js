@@ -474,11 +474,11 @@
     showInspector = !showInspector;
     btnInspect.classList.toggle("active", showInspector);
     if (showInspector) {
-      inspectorPanel.hidden = false;
+      inspectorPanel.style.display = "flex";
       closeCssRulesPanel();
       vscode.postMessage({ type: "inspectorToggle", enabled: true, url: currentUrl });
     } else {
-      inspectorPanel.hidden = true;
+      inspectorPanel.style.display = "none";
       clearInspectorHover();
       preview.src = currentUrl;
       vscode.postMessage({ type: "inspectorToggle", enabled: false });
@@ -709,7 +709,7 @@
     btnCssRules.classList.toggle("active", showCssRules);
     cssRulesPanel.hidden = !showCssRules;
     if (showCssRules) {
-      inspectorPanel.hidden = true;
+      inspectorPanel.style.display = "none";
       if (showInspector) {
         requestCssRules();
         setTimeout(() => crSearch.focus(), 50);
