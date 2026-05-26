@@ -4,6 +4,14 @@ All notable changes to ResView are documented here.
 
 ---
 
+## [1.1.22] – 2026-05-26
+
+### Fixed
+- **URL navigation after inspector toggle.** Navigating to a new URL now always routes through the proxy regardless of inspector state, fixing a regression where the preview did not update when the inspector was inactive.
+- **Proxy target not updated on navigation.** `currentUrl` and the proxy target are now set on every navigation, not only when the inspector is enabled.
+
+---
+
 ## [1.1.21] – 2026-05-26
 
 ### Changed

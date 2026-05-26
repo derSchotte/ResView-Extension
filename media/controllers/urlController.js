@@ -2,7 +2,7 @@
 "use strict";
 
 import { MSG } from "../constants.js";
-import { el, toProxyUrl } from "../utils.js";
+import { el } from "../utils.js";
 
 /**
  * Manages the URL bar, Go button, Live Server shortcut, server chips,
@@ -36,11 +36,12 @@ export class UrlController {
     /** @type {HTMLInputElement} */ (el("urlInput")).value = url;
     el("urlCollapsedHint").textContent = this.#state.urlCollapsed ? url : "";
 
-    if (this.#state.showInspector) {
-      this.#bridge.post({ type: MSG.INSPECTOR_TOGGLE, enabled: true, url });
-    } else {
-      this.#preview.src = toProxyUrl(url, this.#state.proxyPort) || url;
-    }
+    // Always route through the proxy (sets target + responds with proxyUrl via inspectorReady)
+    this.#bridge.post({
+      type: MSG.INSPECTOR_TOGGLE,
+      enabled: this.#state.showInspector,
+      url,
+    });
   }
 
   /**

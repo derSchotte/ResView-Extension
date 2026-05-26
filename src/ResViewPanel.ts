@@ -243,8 +243,9 @@ export class ResViewPanel {
 
   private onInspectorToggle(enabled: boolean, url?: string): void {
     this.proxy.setInspectorEnabled(enabled);
-    if (enabled && url) {
+    if (url) {
       this.proxy.setTarget(url);
+      this.currentUrl = url;
     }
     const targetUrl = url ?? this.currentUrl;
     if (targetUrl) {
