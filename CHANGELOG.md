@@ -4,6 +4,13 @@ All notable changes to ResView are documented here.
 
 ---
 
+## [1.1.19] – 2026-05-26
+
+### Changed
+- **Lucide icons throughout.** All toolbar icons, tab icons, and modal controls have been replaced with [Lucide](https://lucide.dev) SVG icons: `chevron-down`, `refresh-cw`, `external-link`, `zap`, `smartphone`, `tablet`, `monitor`, `rotate-cw`, `plus`, `trash-2`, `info`, `grid-2x2`, `ruler`, `crosshair`, `x`.
+
+---
+
 ## [1.1.18] – 2026-05-26
 
 ### Changed

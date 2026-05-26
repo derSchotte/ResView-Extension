@@ -274,6 +274,9 @@ export class ResViewPanel {
     const styleUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "style.css")
     );
+    const lucideUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "media", "lucide.min.js")
+    );
     const nonce = getNonce();
 
     return /* html */ `<!DOCTYPE html>
@@ -300,20 +303,18 @@ export class ResViewPanel {
           <button class="url-header" id="btnUrlToggle" title="URL-Leiste ein-/ausklappen">
             <span class="url-header-label">URL</span>
             <span id="urlCollapsedHint" class="url-collapsed-hint"></span>
-            <span id="urlChevron" class="url-chevron">▾</span>
+            <i data-lucide="chevron-down" class="url-chevron" id="urlChevron"></i>
           </button>
           <div id="urlCollapsible" class="url-collapsible">
             <div class="url-row">
               <input id="urlInput" class="url-input" type="url" placeholder="http://localhost:3000" spellcheck="false" />
               <button id="btnGo" class="btn btn-primary" title="Load URL">Go</button>
-              <button id="btnRescan" class="btn btn-icon" title="Re-scan for dev servers">
-                <span class="icon">⟳</span>
-              </button>
-              <button id="btnOpenBrowser" class="btn btn-icon" title="Open in system browser">↗</button>
+              <button id="btnRescan" class="btn btn-icon" title="Re-scan for dev servers"><i data-lucide="refresh-cw"></i></button>
+              <button id="btnOpenBrowser" class="btn btn-icon" title="Open in system browser"><i data-lucide="external-link"></i></button>
             </div>
             <div class="server-chips-row">
               <button id="btnLiveServer" class="server-chip server-chip--pinned" title="Load http://localhost:5500">
-                <span class="server-badge server-badge--pin">⚡</span> Live Server :5500
+                <i data-lucide="zap" class="server-badge server-badge--pin"></i> Live Server :5500
               </button>
               <div id="serverChips" class="server-chips"></div>
             </div>
@@ -323,22 +324,20 @@ export class ResViewPanel {
 
       <div class="toolbar-row toolbar-row--devices">
         <div class="category-tabs">
-          <button class="tab-btn active" data-cat="phone">📱 Phone</button>
-          <button class="tab-btn" data-cat="tablet">🖥 Tablet</button>
-          <button class="tab-btn" data-cat="desktop">🖥️ Desktop</button>
+          <button class="tab-btn active" data-cat="phone"><i data-lucide="smartphone"></i> Phone</button>
+          <button class="tab-btn" data-cat="tablet"><i data-lucide="tablet"></i> Tablet</button>
+          <button class="tab-btn" data-cat="desktop"><i data-lucide="monitor"></i> Desktop</button>
         </div>
 
         <div class="device-select-group">
           <select id="deviceSelect" class="device-select"></select>
-          <button id="btnRotate" class="btn btn-icon rotate-btn" title="Toggle Portrait / Landscape">
-            <span id="rotateIcon">↕</span>
-          </button>
-          <button id="btnAddDevice" class="btn btn-add" title="Add custom device">+</button>
-          <button id="btnDeleteDevice" class="btn btn-danger" title="Delete this custom device" hidden>🗑</button>
+          <button id="btnRotate" class="btn btn-icon rotate-btn" title="Toggle Portrait / Landscape"><i data-lucide="rotate-cw"></i></button>
+          <button id="btnAddDevice" class="btn btn-add" title="Add custom device"><i data-lucide="plus"></i></button>
+          <button id="btnDeleteDevice" class="btn btn-danger" title="Delete this custom device" hidden><i data-lucide="trash-2"></i></button>
         </div>
 
         <div class="device-info-wrap">
-          <button id="btnDeviceInfo" class="btn btn-icon btn-device-info" title="Device info">ⓘ</button>
+          <button id="btnDeviceInfo" class="btn btn-icon btn-device-info" title="Device info"><i data-lucide="info"></i></button>
           <div id="deviceInfoPopup" class="device-info-popup" hidden></div>
         </div>
 
@@ -348,7 +347,7 @@ export class ResViewPanel {
           <span id="zoomLabel" class="zoom-label">75 %</span>
         </div>
         <div class="overlay-controls">
-          <button id="btnGrid" class="btn btn-icon btn-overlay-toggle" title="Toggle Grid">Grid</button>
+          <button id="btnGrid" class="btn btn-icon btn-overlay-toggle" title="Toggle Grid"><i data-lucide="grid-2x2"></i></button>
           <select id="gridSizeSelect" class="grid-size-select" title="Grid cell size">
             <option value="4">4 px</option>
             <option value="8" selected>8 px</option>
@@ -357,8 +356,8 @@ export class ResViewPanel {
             <option value="32">32 px</option>
             <option value="64">64 px</option>
           </select>
-          <button id="btnRuler" class="btn btn-icon btn-overlay-toggle" title="Toggle Ruler">Ruler</button>
-          <button id="btnInspect" class="btn btn-icon btn-overlay-toggle" title="Inspector Mode (localhost only)">Inspect</button>
+          <button id="btnRuler" class="btn btn-icon btn-overlay-toggle" title="Toggle Ruler"><i data-lucide="ruler"></i></button>
+          <button id="btnInspect" class="btn btn-icon btn-overlay-toggle" title="Inspector Mode (localhost only)"><i data-lucide="crosshair"></i></button>
         </div>
       </div>
     </header>
@@ -420,7 +419,7 @@ export class ResViewPanel {
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-header">
         <h3 class="modal-title" id="modalTitle">Add Custom Device</h3>
-        <button id="cdClose" class="btn btn-icon modal-close" title="Close">✕</button>
+        <button id="cdClose" class="btn btn-icon modal-close" title="Close"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-body">
         <div class="field-group">
@@ -464,6 +463,7 @@ export class ResViewPanel {
     </div>
   </div>
 
+  <script nonce="${nonce}" src="${lucideUri}"></script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;

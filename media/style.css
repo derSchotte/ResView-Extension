@@ -194,9 +194,20 @@ html, body {
   cursor: not-allowed;
 }
 
+/* ── Lucide icon sizing ─────────────────────────────────────────────────────── */
+.btn svg, .tab-btn svg, .url-header svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.rotate-btn svg  { width: 15px; height: 15px; }
+.btn-add svg     { width: 16px; height: 16px; }
+.server-chip svg { width: 12px; height: 12px; }
+
 /* ── Spinning rescan button ────────────────────────────────────────────────── */
 @keyframes spin { to { transform: rotate(360deg); } }
-.spinning .icon { display: inline-block; animation: spin 0.7s linear infinite; }
+.spinning svg { animation: spin 0.7s linear infinite; }
 
 /* ── Server chips ──────────────────────────────────────────────────────────── */
 .server-chips-row {
@@ -310,9 +321,7 @@ html, body {
 }
 
 .btn-device-info {
-  font-size: 16px;
   padding: 4px 9px;
-  line-height: 1;
 }
 
 .device-info-popup {
@@ -486,10 +495,7 @@ html, body {
   background: rgba(124, 106, 246, 0.12);
   border: 1px solid rgba(124, 106, 246, 0.35);
   color: var(--accent);
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1;
-  padding: 3px 9px;
+  padding: 4px 9px;
 }
 .btn-add:hover {
   background: rgba(124, 106, 246, 0.28);
@@ -501,7 +507,6 @@ html, body {
   background: rgba(243, 139, 168, 0.1);
   border: 1px solid rgba(243, 139, 168, 0.35);
   color: #f38ba8;
-  font-size: 13px;
   padding: 4px 9px;
 }
 .btn-danger:hover {

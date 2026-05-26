@@ -2,6 +2,9 @@
 (function () {
   "use strict";
 
+  // @ts-ignore
+  lucide.createIcons();
+
   const vscode = acquireVsCodeApi();
 
   // ── State ──────────────────────────────────────────────────────────────────
@@ -31,7 +34,6 @@
   const serverChips = document.getElementById("serverChips");
   const deviceSelect = /** @type {HTMLSelectElement} */ (document.getElementById("deviceSelect"));
   const btnRotate = document.getElementById("btnRotate");
-  const rotateIcon = document.getElementById("rotateIcon");
   const btnAddDevice = document.getElementById("btnAddDevice");
   const btnDeleteDevice = document.getElementById("btnDeleteDevice");
   const btnDeviceInfo = document.getElementById("btnDeviceInfo");
@@ -239,7 +241,7 @@
   btnRescan.addEventListener("click", () => {
     btnRescan.classList.add("spinning");
     vscode.postMessage({ type: "rescan" });
-    setTimeout(() => btnRescan.classList.remove("spinning"), 2000);
+    setTimeout(() => btnRescan.classList.remove("spinning"), 1800);
   });
 
   // ── Server chips ────────────────────────────────────────────────────────────
@@ -338,7 +340,6 @@
       : isLandscape
       ? "Switch to Portrait"
       : "Switch to Landscape";
-    rotateIcon.textContent = isLandscape ? "↔" : "↕";
   }
 
   // ── Category tabs ────────────────────────────────────────────────────────────
