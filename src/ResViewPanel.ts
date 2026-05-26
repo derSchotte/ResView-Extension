@@ -26,6 +26,9 @@ export class ResViewPanel {
   private _currentUrl = "";
   private _detectedServers: DetectedServer[] = [];
   private _proxy: InspectorProxy = new InspectorProxy();
+  private _pollTimer: ReturnType<typeof setTimeout> | undefined;
+  private _polling = false;
+  private static readonly POLL_INTERVAL_MS = 3000;
 
   static async revive(panel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     panel.webview.options = {
@@ -107,10 +110,64 @@ export class ResViewPanel {
           this._detectedServers = await detectRunningServers();
         }
       );
+      this._startPolling();
     }
 
     this._currentUrl = defaultUrl || "";
     this._render();
+  }
+
+  private _startPolling() {
+    this._stopPolling();
+    this._polling = true;
+    const schedule = () => {
+      this._pollTimer = setTimeout(async () => {
+        if (!this._polling) return;
+        await this._pollServers();
+        if (this._polling) schedule();
+      }, ResViewPanel.POLL_INTERVAL_MS);
+    };
+    schedule();
+  }
+
+  private _stopPolling() {
+    this._polling = false;
+    if (this._pollTimer !== undefined) {
+      clearTimeout(this._pollTimer);
+      this._pollTimer = undefined;
+    }
+  }
+
+  private async _pollServers() {
+    let servers: DetectedServer[];
+    try {
+      servers = await detectRunningServers();
+    } catch {
+      return;
+    }
+
+    const newServers = servers.filter(
+      (s) => !this._detectedServers.some((d) => d.port === s.port)
+    );
+
+    if (newServers.length === 0) return;
+
+    this._detectedServers = servers;
+    this._panel.webview.postMessage({ type: "servers", servers });
+
+    if (!this._currentUrl) {
+      for (const server of newServers) {
+        const label = server.framework ? ` (${server.framework})` : "";
+        const pick = await vscode.window.showInformationMessage(
+          `ResView: Dev server detected at ${server.url}${label}`,
+          "Open",
+          "Dismiss"
+        );
+        if (pick === "Open") {
+          await this._setUrl(server.url);
+        }
+      }
+    }
   }
 
   private async _setUrl(url: string) {
@@ -411,6 +468,7 @@ export class ResViewPanel {
 
   dispose() {
     ResViewPanel.currentPanel = undefined;
+    this._stopPolling();
     this._proxy.stop();
     this._panel.dispose();
     while (this._disposables.length) {

@@ -18,6 +18,11 @@ Instantly flip between portrait and landscape orientation for any phone or table
 ### Auto Dev-Server Detection
 ResView scans for running local development servers on startup and shows them as clickable chips — just click to load instantly. Supports Next.js, React, Vite, Angular, Vue, Svelte, Flask, Django, and more. Re-scan at any time with the refresh button.
 
+ResView also **polls for new servers every 3 seconds** while the panel is open. If you start a dev server after opening the panel (e.g. `npm run dev`), it is detected automatically: the server chips update and — if the URL bar is empty — a notification pops up with an **Open** button so you can load it with one click.
+
+### Collapsible URL Bar
+Click the **URL** header button to collapse the address bar and free up vertical space. When collapsed, a hint line shows the currently loaded URL so you always know what's being previewed. Click again to expand.
+
 ### Live Server Quick-Access
 A dedicated **⚡ Live Server :5500** button is always visible in the toolbar, giving you instant one-click access to the VS Code Live Server extension without having to type the address manually.
 

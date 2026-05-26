@@ -4,6 +4,20 @@ All notable changes to ResView are documented here.
 
 ---
 
+## [1.1.17] – 2026-05-26
+
+### Added
+- **Background server polling.** ResView now continuously checks for running dev servers every 3 seconds while the panel is open. When a new server starts (e.g. after running `npm run dev`), the server chips in the toolbar update automatically. If the URL bar is empty, a VS Code notification appears with an **Open** button to load the server immediately — no manual re-scan needed.
+
+---
+
+## [1.1.16] – 2026-05-26
+
+### Added
+- **Collapsible URL bar.** The URL bar can be collapsed to maximise preview space. When collapsed, a hint line shows the currently loaded URL so you always know what's being previewed. Click the **URL** header button to toggle.
+
+---
+
 ## [1.1.15] – 2026-05-23
 
 ### Added
