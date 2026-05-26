@@ -48,11 +48,11 @@ class ResViewApp {
   }
 
   #subscribeExtension() {
-    this.#vsBridge.on(MSG.INIT,            (msg) => this.#onInit(msg));
-    this.#vsBridge.on(MSG.SET_URL,         (msg) => this.#urlController.loadUrl(msg.url));
-    this.#vsBridge.on(MSG.SERVERS,         (msg) => this.#urlController.renderServers(msg.servers ?? []));
-    this.#vsBridge.on(MSG.CUSTOM_DEVICES,  (msg) => this.#onCustomDevices(msg));
-    this.#vsBridge.on(MSG.INSPECTOR_READY, (msg) => {
+    this.#vsBridge.on(MSG.INIT,            (/** @type {any} */ msg) => this.#onInit(msg));
+    this.#vsBridge.on(MSG.SET_URL,         (/** @type {any} */ msg) => this.#urlController.loadUrl(msg.url));
+    this.#vsBridge.on(MSG.SERVERS,         (/** @type {any} */ msg) => this.#urlController.renderServers(msg.servers ?? []));
+    this.#vsBridge.on(MSG.CUSTOM_DEVICES,  (/** @type {any} */ msg) => this.#onCustomDevices(msg));
+    this.#vsBridge.on(MSG.INSPECTOR_READY, (/** @type {any} */ msg) => {
       const iframe = this.#previewController.iframe;
       iframe.removeAttribute("src");
       iframe.src = msg.proxyUrl;
@@ -69,7 +69,8 @@ class ResViewApp {
 
     if (saved.category) {
       this.#state.currentCategory = saved.category;
-      document.querySelectorAll(".tab-btn").forEach((b) => {
+      const tabButtons = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".tab-btn"));
+      tabButtons.forEach((b) => {
         b.classList.toggle("active", b.dataset.cat === saved.category);
       });
     }
@@ -102,7 +103,8 @@ class ResViewApp {
     if (msg.selectName) {
       const newDev = this.#state.customDevices.find((d) => d.name === msg.selectName);
       if (newDev && newDev.category !== this.#state.currentCategory) {
-        document.querySelectorAll(".tab-btn").forEach((b) => {
+        const tabButtons = /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".tab-btn"));
+        tabButtons.forEach((b) => {
           b.classList.toggle("active", b.dataset.cat === newDev.category);
         });
         this.#state.currentCategory = newDev.category;
