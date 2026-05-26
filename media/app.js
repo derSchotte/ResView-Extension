@@ -53,11 +53,7 @@ class ResViewApp {
     this.#vsBridge.on(MSG.SERVERS,         (msg) => this.#urlController.renderServers(msg.servers ?? []));
     this.#vsBridge.on(MSG.CUSTOM_DEVICES,  (msg) => this.#onCustomDevices(msg));
     this.#vsBridge.on(MSG.INSPECTOR_READY, (msg) => {
-      const iframe = this.#previewController.iframe;
-      // Remove the attribute first so the subsequent assignment always triggers
-      // navigation, even when proxyUrl hasn't changed (e.g. inspector toggle).
-      iframe.removeAttribute("src");
-      iframe.src = msg.proxyUrl;
+      this.#previewController.iframe.src = msg.proxyUrl;
     });
   }
 

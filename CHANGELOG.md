@@ -4,25 +4,6 @@ All notable changes to ResView are documented here.
 
 ---
 
-## [1.1.23] – 2026-05-26
-
-### Added
-- **Touch emulation.** Mouse events inside the preview iframe are mapped to synthetic `TouchEvent`s (`touchstart`, `touchmove`, `touchend`, `touchcancel`), so swipe gestures, touch-only menus, and mobile-specific libraries respond correctly. Runs unconditionally — no toggle needed.
-- **`navigator.maxTouchPoints` spoofing.** Set to `1` so libraries that gate on this property (Hammer.js, Swiper, etc.) treat the preview as a touch-capable device.
-
-### Fixed
-- **Inspector/CSS Rules broken after touch emulation.** Once all pages were routed through the proxy, toggling the inspector sent an `inspectorReady` message with the same proxy URL that was already loaded. Chromium treats `iframe.src = sameUrl` as a no-op, so the inspector script was never injected. Fixed by removing the `src` attribute before each `inspectorReady` navigation to guarantee a fresh page load.
-
----
-
-## [1.1.22] – 2026-05-26
-
-### Fixed
-- **URL navigation after inspector toggle.** Navigating to a new URL now always routes through the proxy regardless of inspector state, fixing a regression where the preview did not update when the inspector was inactive.
-- **Proxy target not updated on navigation.** `currentUrl` and the proxy target are now set on every navigation, not only when the inspector is enabled.
-
----
-
 ## [1.1.21] – 2026-05-26
 
 ### Changed

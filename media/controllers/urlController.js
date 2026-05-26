@@ -36,12 +36,11 @@ export class UrlController {
     /** @type {HTMLInputElement} */ (el("urlInput")).value = url;
     el("urlCollapsedHint").textContent = this.#state.urlCollapsed ? url : "";
 
-    // Always route through the proxy (sets target + responds with proxyUrl via inspectorReady)
-    this.#bridge.post({
-      type: MSG.INSPECTOR_TOGGLE,
-      enabled: this.#state.showInspector,
-      url,
-    });
+    if (this.#state.showInspector) {
+      this.#bridge.post({ type: MSG.INSPECTOR_TOGGLE, enabled: true, url });
+    } else {
+      this.#preview.src = url;
+    }
   }
 
   /**

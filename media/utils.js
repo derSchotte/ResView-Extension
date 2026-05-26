@@ -35,21 +35,3 @@ export function pxDisplay(value) {
 export function el(id) {
   return /** @type {HTMLElement} */ (document.getElementById(id));
 }
-
-/**
- * Returns the proxy URL for a given original URL, routing it through the
- * local inspector proxy so scripts can be injected into the page.
- * Falls back to the original URL if proxyPort is 0 or the URL is invalid.
- * @param {string} url
- * @param {number} proxyPort
- * @returns {string}
- */
-export function toProxyUrl(url, proxyPort) {
-  if (!url || !proxyPort) return url;
-  try {
-    const { pathname, search } = new URL(url);
-    return `http://127.0.0.1:${proxyPort}${pathname}${search}`;
-  } catch {
-    return url;
-  }
-}

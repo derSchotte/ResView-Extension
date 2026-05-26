@@ -2,22 +2,6 @@ import * as http from "http";
 import * as https from "https";
 import * as net from "net";
 
-// Maps mouse events to synthetic Touch events so that touch-only listeners
-// (swipe gestures, mobile sliders, etc.) work inside the preview iframe.
-// navigator.maxTouchPoints is patched so libraries that gate on touch support
-// treat the page as a touch device.
-const TOUCH_SCRIPT = `(function(){
-  'use strict';
-  try{Object.defineProperty(navigator,'maxTouchPoints',{get:function(){return 1;},configurable:true});}catch(e){}
-  var drag=false,last=null;
-  function mk(e){return new Touch({identifier:1,target:e.target,clientX:e.clientX,clientY:e.clientY,screenX:e.screenX,screenY:e.screenY,pageX:e.pageX,pageY:e.pageY,radiusX:1,radiusY:1,rotationAngle:0,force:1});}
-  function fire(type,e,t){var a=type==='touchend'||type==='touchcancel'?[]:[t];try{e.target.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,touches:a,targetTouches:a,changedTouches:[t]}));}catch(x){}}
-  document.addEventListener('mousedown',function(e){if(e.button!==0||!e.target||e.target.id==='__rv_hl__')return;drag=true;last=mk(e);fire('touchstart',e,last);},true);
-  document.addEventListener('mousemove',function(e){if(!drag)return;last=mk(e);fire('touchmove',e,last);},true);
-  document.addEventListener('mouseup',function(e){if(!drag)return;drag=false;var t=last||mk(e);last=null;fire('touchend',e,t);},true);
-  document.addEventListener('mouseleave',function(e){if(!drag)return;drag=false;var t=last||mk(e);last=null;fire('touchcancel',e,t);},true);
-})();`;
-
 const INSPECTOR_SCRIPT = `(function(){
   'use strict';
   var hl=null;
@@ -155,7 +139,6 @@ export class InspectorProxy {
   private server: http.Server | null = null;
   private port = 0;
   private targetBase = "";
-  private inspectorEnabled = false;
 
   async start(): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -173,10 +156,6 @@ export class InspectorProxy {
 
   get proxyPort(): number {
     return this.port;
-  }
-
-  setInspectorEnabled(enabled: boolean): void {
-    this.inspectorEnabled = enabled;
   }
 
   setTarget(targetUrl: string): void {
@@ -285,7 +264,7 @@ export class InspectorProxy {
     proxyRes.on("data", (chunk: Buffer) => chunks.push(chunk));
     proxyRes.on("end", () => {
       const html = Buffer.concat(chunks).toString("utf-8");
-      res.end(this.injectScripts(html));
+      res.end(this.injectInspectorScript(html));
     });
   }
 
@@ -320,12 +299,8 @@ export class InspectorProxy {
     return location;
   }
 
-  private injectScripts(html: string): string {
-    const touch = `<script id="__rv_touch__">${TOUCH_SCRIPT}<\/script>`;
-    const inspector = this.inspectorEnabled
-      ? `<script id="__rv_inspector__">${INSPECTOR_SCRIPT}<\/script>`
-      : "";
-    const tag = touch + inspector;
+  private injectInspectorScript(html: string): string {
+    const tag = `<script id="__rv_inspector__">${INSPECTOR_SCRIPT}<\/script>`;
     if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, `${tag}</body>`);
     if (/<\/html>/i.test(html)) return html.replace(/<\/html>/i, `${tag}</html>`);
     return html + tag;

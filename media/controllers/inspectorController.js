@@ -54,7 +54,7 @@ export class InspectorController {
       } else {
         el("inspectorPanel").style.display = "none";
         this.clear();
-        // Backend responds with inspectorReady (proxy URL, touch-only) which reloads the iframe
+        /** @type {HTMLIFrameElement} */ (el("preview")).src = this.#state.currentUrl;
         this.#vsBridge.post({ type: MSG.INSPECTOR_TOGGLE, enabled: false });
       }
     });

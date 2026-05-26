@@ -185,7 +185,6 @@ export class ResViewPanel {
 
   private async setUrl(url: string): Promise<void> {
     this.currentUrl = url;
-    this.proxy.setTarget(url);
     this.panel.webview.postMessage({ type: "setUrl", url });
   }
 
@@ -202,7 +201,6 @@ export class ResViewPanel {
   }
 
   private onReady(): void {
-    if (this.currentUrl) this.proxy.setTarget(this.currentUrl);
     this.panel.webview.postMessage({
       type: "init",
       url: this.currentUrl,
@@ -242,14 +240,9 @@ export class ResViewPanel {
   }
 
   private onInspectorToggle(enabled: boolean, url?: string): void {
-    this.proxy.setInspectorEnabled(enabled);
-    if (url) {
+    if (enabled && url) {
       this.proxy.setTarget(url);
-      this.currentUrl = url;
-    }
-    const targetUrl = url ?? this.currentUrl;
-    if (targetUrl) {
-      const proxyUrl = this.proxy.proxyUrlFor(targetUrl);
+      const proxyUrl = this.proxy.proxyUrlFor(url);
       this.panel.webview.postMessage({ type: "inspectorReady", proxyUrl });
     }
   }
