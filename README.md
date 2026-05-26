@@ -21,7 +21,10 @@ ResView scans for running local development servers on startup and shows them as
 ResView also **polls for new servers every 3 seconds** while the panel is open. If you start a dev server after opening the panel (e.g. `npm run dev`), it is detected automatically: the server chips update and — if the URL bar is empty — a notification pops up with an **Open** button so you can load it with one click.
 
 ### Collapsible URL Bar
-Click the **URL** header button to collapse the address bar and free up vertical space. When collapsed, a hint line shows the currently loaded URL so you always know what's being previewed. Click again to expand.
+Click the **URL** button in the toolbar to collapse the address bar and free up vertical space. When collapsed, a hint line shows the currently loaded URL so you always know what's being previewed. Click again to expand.
+
+### Device Info Popup
+Click or hover over the **ⓘ** button (between the device controls and the zoom slider) to open a popup showing the selected device's name, year, category, portrait and landscape dimensions, and PPI.
 
 ### Live Server Quick-Access
 A dedicated **⚡ Live Server :5500** button is always visible in the toolbar, giving you instant one-click access to the VS Code Live Server extension without having to type the address manually.

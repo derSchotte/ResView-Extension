@@ -298,7 +298,7 @@ export class ResViewPanel {
       <div class="toolbar-row toolbar-row--top">
         <div class="url-group">
           <button class="url-header" id="btnUrlToggle" title="URL-Leiste ein-/ausklappen">
-            <span class="label">URL</span>
+            <span class="url-header-label">URL</span>
             <span id="urlCollapsedHint" class="url-collapsed-hint"></span>
             <span id="urlChevron" class="url-chevron">▾</span>
           </button>
@@ -337,7 +337,10 @@ export class ResViewPanel {
           <button id="btnDeleteDevice" class="btn btn-danger" title="Delete this custom device" hidden>🗑</button>
         </div>
 
-        <div id="deviceInfo" class="device-info"></div>
+        <div class="device-info-wrap">
+          <button id="btnDeviceInfo" class="btn btn-icon btn-device-info" title="Device info">ⓘ</button>
+          <div id="deviceInfoPopup" class="device-info-popup" hidden></div>
+        </div>
 
         <div class="zoom-group">
           <label class="label">Zoom</label>

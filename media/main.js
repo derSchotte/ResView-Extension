@@ -34,7 +34,8 @@
   const rotateIcon = document.getElementById("rotateIcon");
   const btnAddDevice = document.getElementById("btnAddDevice");
   const btnDeleteDevice = document.getElementById("btnDeleteDevice");
-  const deviceInfo = document.getElementById("deviceInfo");
+  const btnDeviceInfo = document.getElementById("btnDeviceInfo");
+  const deviceInfoPopup = document.getElementById("deviceInfoPopup");
   const dimensionBadge = document.getElementById("dimensionBadge");
   const deviceShell = document.getElementById("deviceShell");
   const deviceBezel = document.getElementById("deviceBezel");
@@ -670,6 +671,26 @@
     vscode.postMessage({ type: "deleteCustomDevice", name: currentDevice.name });
   });
 
+  // ── Device Info Popup ────────────────────────────────────────────────────────
+  const diWrap = btnDeviceInfo.closest(".device-info-wrap");
+  let diHideTimer;
+
+  diWrap.addEventListener("mouseenter", () => {
+    clearTimeout(diHideTimer);
+    deviceInfoPopup.hidden = false;
+  });
+  diWrap.addEventListener("mouseleave", () => {
+    diHideTimer = setTimeout(() => { deviceInfoPopup.hidden = true; }, 180);
+  });
+  btnDeviceInfo.addEventListener("click", () => {
+    deviceInfoPopup.hidden = !deviceInfoPopup.hidden;
+  });
+  document.addEventListener("click", (e) => {
+    if (!diWrap.contains(/** @type {Node} */ (e.target))) {
+      deviceInfoPopup.hidden = true;
+    }
+  });
+
   // ── Persist UI state ─────────────────────────────────────────────────────────
   function persistState() {
     vscode.postMessage({
@@ -747,11 +768,21 @@
     const ppiInfo = currentDevice.ppi ? ` · ${currentDevice.ppi} PPI` : "";
     dimensionBadge.textContent = `${w} × ${h} px${orientation}${ppiInfo}`;
 
-    const yearInfo = currentDevice.year ? ` (${currentDevice.year})` : "";
-    const customTag = currentDevice.custom ? ' <span class="custom-tag">Custom</span>' : "";
-    deviceInfo.innerHTML =
-      `<strong>${currentDevice.name}</strong>${yearInfo}${customTag}` +
-      ` &nbsp;·&nbsp; ${w} × ${h} px`;
+    const customTag = currentDevice.custom ? '<span class="custom-tag">Custom</span>' : "";
+    const catLabel = currentDevice.category.charAt(0).toUpperCase() + currentDevice.category.slice(1);
+    const yearRow = currentDevice.year
+      ? `<div class="di-row">${currentDevice.year} · ${catLabel}</div>`
+      : `<div class="di-row">${catLabel}</div>`;
+    const dimPortrait = `${currentDevice.portrait.width} × ${currentDevice.portrait.height} px`;
+    const dimLandscape = currentDevice.landscape
+      ? ` &nbsp;/&nbsp; ${currentDevice.landscape.width} × ${currentDevice.landscape.height} px`
+      : "";
+    const ppiRow = currentDevice.ppi ? `<div class="di-row">${currentDevice.ppi} PPI</div>` : "";
+    deviceInfoPopup.innerHTML =
+      `<div class="di-name">${currentDevice.name}${customTag ? " " + customTag : ""}</div>` +
+      yearRow +
+      `<div class="di-row">${dimPortrait}${dimLandscape}</div>` +
+      ppiRow;
 
     // For phones/tablets: widen the iframe by the native scrollbar width so the
     // scrollbar is pushed outside frameWrapper's overflow:hidden boundary.

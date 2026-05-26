@@ -4,6 +4,14 @@ All notable changes to ResView are documented here.
 
 ---
 
+## [1.1.18] – 2026-05-26
+
+### Changed
+- **URL bar toggle button redesigned.** The collapse/expand button is now visually prominent: background, border, hover highlight, and more padding — no longer easy to miss.
+- **Device info moved to a popup.** The inline device name/dimensions text between the + button and the zoom slider has been replaced by a compact **ⓘ** button. Hovering over it (or clicking) opens a structured popup showing the device name, year, category, portrait and landscape dimensions, and PPI.
+
+---
+
 ## [1.1.17] – 2026-05-26
 
 ### Added
